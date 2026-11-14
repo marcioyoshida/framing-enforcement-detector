@@ -57,6 +57,13 @@ This repository documents the scoring protocol. It can be implemented as:
 - A fine-tuned classifier with human review
 - A hybrid system
 
+See [TECHNIQUES.md](TECHNIQUES.md) for an overview of NLP approaches (classical, fine-tuned encoders, LLM-as-judge, hybrids) and practical recommendations.
+
+Ready-to-use prompt templates are in the [`prompts/`](prompts/) directory:
+- `system_prompt.md` — base instructions
+- `dimension_template.md` — reusable single-dimension scoring template
+- `example_selective_scope.md` — worked example
+
 Comparative / longitudinal mode (scoring against prior texts from the same institution) substantially improves detection of the subtler dimensions.
 
 ## License
