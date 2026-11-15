@@ -37,14 +37,32 @@ Higher scores indicate stronger textual alignment with these patterns. The frame
 13. **Authority substitution** — Secondary institutional endorsement replacing primary evidence.
 14. **Risk externalization language** — Downside risk framed as exclusively external to the enforcing institution.
 
-## Output Format
+### Tier 3: Network & Attribution Asymmetry Dimensions (0–5 each) Gemini
 
-For any prompted text:
-1. Overall composite score
-2. Dimension-level scores with short rationales and evidence excerpts
-3. Primary domain classification
-4. Confidence note
-5. Optional comparative flag (when prior corpus context is available)
+15. **Attribution laundering / proxy indirection** — Reliance on unverified secondary sources, circular citations, or commercial cut-outs that obscure primary institutional sponsorship.
+16. **Dialect & subcultural mimicry** — Abrupt shifts between standardized bureaucratic framing and hyper-local slang, regional idioms, or niche grievance framing designed to simulate grassroots origin.
+17. **Whataboutism / false equivalence pivot** — Structural deflection where scrutiny of an actor's policy is countered by invoking an unrelated historical or external grievance rather than addressing the primary claim.
+18. **Strategic flooding / volume camouflage** — Excessive deployment of benign cultural, humanitarian, or technical boilerplate used to bury or crowd out critical substantive disclosures.
+19. **Regulatory & jurisdictional arbitrage** — Language exploiting gaps between national laws, academic norms, and commercial agreements (e.g., framing state-directed policy initiatives strictly as private exchanges).
+
+
+### Symmetry & Transparency Counter-Signals (Diagnostic Offsets)
+
+To prevent false positives on rigorous legal, scientific, or regulatory texts, the agent also logs explicit counter-signals:
+
+- **Explicit provenance & funding disclosure** — Clear attribution of institutional sponsorship, conflicts of interest, or primary data sources.
+- **Falsifiable & symmetric criteria** — Explicit statement of conditions under which the rule applies equally to allies, internal actors, or the enforcing institution itself.
+- **Acknowledged trade-offs & limitations** — Transparent discussion of uncertainties, edge cases, or unintended consequences.
+
+## Output Format (JSON & Markdown)
+
+For any prompted text (or `(Text_A, Text_B)` comparative pair):
+
+1. **Profile Metrics:** Top-3 Dominant Pattern Profile, Max-Cluster Score, and Overall Composite Score.
+2. **Span-Grounded Dimension Scores:** Score (`0–5`), verbatim evidence substring (`quote`), and brief rationale.
+3. **Counter-Signal Log:** Detected transparency or symmetry markers.
+4. **Primary Domain Classification & Confidence Note.**
+5. **Comparative Delta Flag:** Explicit shift analysis when a baseline corpus or paired text is provided.
 
 ## Domain Notes
 
