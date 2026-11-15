@@ -4,6 +4,26 @@ Package versions follow semver (ADR 0001 §7): patch = docs/tests only; minor = 
 or a marker version bump; major = an interface change. **Every marker version change is
 listed here.** A consumer that upgrades re-measures the markers whose version changed.
 
+## 0.2.0 — 2026-11-15
+
+- `burden` **burden-v1 → burden-v2.** Consumers re-measure `burden`; every other marker is
+  unchanged.
+  - Why: measured by a consumer on its own corpora (court opinions, agency rules, audit-court
+    decisions), blind, every hit: **v1 precision 0.39 (30 of 77)**. Most errors were "burden"
+    in the economic or paperwork sense, a bare mention of a presumption (usually a party's
+    defence or a heading), and presumptions stated as law.
+  - "Burden" now only in the proof sense: an act verb on it ("met / carried / discharged its
+    burden"), "bears the burden **of proof**", "the burden of proof rests on …", "the burden is
+    on X to prove …". "Bear / shoulder the burden" without "of proof" no longer fires.
+  - A presumption only as an act on it: "the presumption was rebutted", "afastou a presunção",
+    "a presunção restou ilidida". "Is presumed", "presume-se", "é presumido" and a bare
+    "presunção de legitimidade / boa-fé …" no longer fire.
+  - A burden inside a party's reported argument ("the State argues that …", "o responsável
+    alega que …") is dropped.
+  - Library reference set (`eval/heldout2.jsonl`, not used to make these changes): burden
+    en P 1.0 R 0.55, pt P 1.0 R 0.46 (v1: en P 1.0 R 0.91, pt P 1.0 R 0.82). Overall
+    span P 0.986, R 0.771.
+
 ## 0.1.0 — 2026-11-15
 
 First release of `institutional-markers` (ADR 0001).

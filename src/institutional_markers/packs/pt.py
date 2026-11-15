@@ -86,44 +86,42 @@ EXCEPTION = [
 ]
 
 # --- burden ------------------------------------------------------------------------------
+# burden-v2 (2026-11-15): v1 measured 0.39 on a consumer's real corpora (n=77). Bare
+# "presunção de legitimidade/boa-fé…" (1 of 20, almost always a party's defence or a
+# heading), "presume-se" and "é presumido" are gone: a presumption only as an ACT on it
+# (afastada, ilidida). Nothing inside a party's reported argument ("alega que cabe …").
 _PROVE = r"(?:comprovar|provar|demonstrar|produzir\s+(?:a\s+)?prova|evidenciar|justificar)"
+_ARGUED = frozenset({"alega", "alegou", "alegam", "alegaram", "sustenta", "sustentou", "sustentam",
+                     "argumenta", "argumentou", "argumentam", "defende", "defendeu", "aduz", "aduziu",
+                     "aduzem", "requer", "requereu", "pleiteia", "pleiteou", "insiste", "insistiu",
+                     "afirma", "afirmou", "assevera", "asseverou", "pondera", "ponderou"})
+_BUR = dict(subtype="burden", modal_defines=True, blocked_by=_ARGUED)
+_PRES = dict(subtype="presumption", negatable=False, modal_defines=True, blocked_by=_ARGUED)
 BURDEN = [
     Pattern("bur-cabe",
             r"(?:cabe|cabia|cabera|caberia|incumbe|incumbia|incumbira|incumbiria|compete|competia|competira)"
-            r"\s+(?:a|ao|aos|as|o)\s+(?:\w+\s+){0,3}?" + _PROVE, subtype="burden", modal_defines=True),
+            r"\s+(?:a|ao|aos|as|o)\s+(?:\w+\s+){0,3}?" + _PROVE, **_BUR),
     Pattern("bur-onus-cabe",
             r"onus\s+(?:da\s+prova|probatorio|de\s+(?:provar|comprovar|demonstrar)(?:\s+[^.;:,]{0,60}?)?)"
             r"(?:\s*,[^,]{0,60},)?"
             r"\s+(?:\w+\s+)?(?:cabe|cabia|cabera|recai|recaia|recaiu|recaira|incumbe|incumbia|compete|competia"
             r"|pertence|pertencia|e|era|sera|fica|ficava|permanece)\s+(?:a|ao|aos|as|d[oa]s?|sobre|com)(?!\w)",
-            subtype="burden", modal_defines=True),
+            **_BUR),
     Pattern("bur-inversao",
             r"(?:defiro|defere|deferiu|deferid[oa]|determino|determinou|determinad[oa]|decreto|decretou|aplico"
-            r"|aplicou|aplicad[oa]|reconheco|reconheceu|admito|admitiu|admitid[oa]|operou-se|opera-se|cabivel"
-            r"|procede|procedeu-se)\s+(?:a\s+)?inversao\s+do\s+onus(?:\s+da\s+prova|\s+probatorio)?",
-            subtype="burden", modal_defines=True),
-    Pattern("bur-inverto", r"invert(?:o|eu|eram|id[oa])\s+o\s+onus(?:\s+da\s+prova|\s+probatorio)?",
-            subtype="burden", modal_defines=True),
+            r"|aplicou|aplicad[oa]|reconheco|reconheceu|admito|admitiu|admitid[oa]|operou-se|opera-se"
+            r"|procedeu-se)\s+(?:a\s+)?inversao\s+do\s+onus(?:\s+da\s+prova|\s+probatorio)?", **_BUR),
+    Pattern("bur-inverto", r"invert(?:o|eu|eram)\s+o\s+onus(?:\s+da\s+prova|\s+probatorio)?", **_BUR),
     Pattern("bur-desincumbiu",
             r"(?:se\s+)?desincumb(?:iu|iram|ir|indo|e|em|iria)(?:-se)?\s+(?:a\s+contento\s+)?"
             r"d[oa]\s+(?:seu\s+|sua\s+|respectivo\s+)?(?:onus|encargo)(?:\s+(?:probatorio|da\s+prova|de\s+(?:provar|comprovar)))?",
-            subtype="burden", negatable=False, modal_defines=True),
-    Pattern("pres-presume", r"presume(?:m)?-se|presumia-se|presumir-se-a|presumir-se|se\s+presumir",
-            subtype="presumption", modal_defines=True),
-    Pattern("pres-presumido", r"(?:e|sao|foi|foram|era|eram|sera|serao)\s+presumid[oa]s?",
-            subtype="presumption", modal_defines=True),
+            subtype="burden", negatable=False, modal_defines=True, blocked_by=_ARGUED),
     Pattern("pres-afastou",
-            r"(?:afast(?:ou|ar|a|ad[oa])|ilid(?:iu|ir|id[oa])|elid(?:iu|ir|id[oa])|infirm(?:ou|ar|ad[oa])"
-            r"|derrub(?:ou|ar|ad[oa])|reconhec(?:eu|ida))\s+(?:a\s+)?presuncao",
-            subtype="presumption", negatable=False, modal_defines=True),
+            r"(?:afast(?:ou|aram|ad[oa])|ilid(?:iu|iram|id[oa])|elid(?:iu|iram|id[oa])|infirm(?:ou|aram|ad[oa])"
+            r"|derrub(?:ou|aram|ad[oa]))\s+(?:a\s+)?presuncao", **_PRES),
     Pattern("pres-restou",
             r"presuncao\s+(?:\w+\s+){0,5}?(?:foi|restou|ficou|resta)\s+(?:\w+mente\s+)?"
-            r"(?:afastada|ilidida|elidida|infirmada|derrubada|mantida|confirmada|preservada)",
-            subtype="presumption", negatable=False, modal_defines=True),
-    Pattern("pres-de",
-            r"presuncao\s+(?:relativa\s+|absoluta\s+)?de\s+(?:legitimidade|veracidade|inocencia|boa-fe|legalidade"
-            r"|regularidade|certeza|liquidez|culpa|dano)",
-            subtype="presumption", modal_defines=True),
+            r"(?:afastada|ilidida|elidida|infirmada|derrubada)", **_PRES),
 ]
 
 # --- discretion --------------------------------------------------------------------------

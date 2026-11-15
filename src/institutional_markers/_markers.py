@@ -6,7 +6,7 @@ from ._types import MarkerSpec
 MARKERS: dict[str, MarkerSpec] = {m.name: m for m in (
     # Institutional: how a text applies its rules (ADR 0001 §4).
     MarkerSpec("exception_clause", "exception-v1", "institutional"),
-    MarkerSpec("burden", "burden-v1", "institutional", ("burden", "presumption")),
+    MarkerSpec("burden", "burden-v2", "institutional", ("burden", "presumption")),
     MarkerSpec("discretion", "discretion-v1", "institutional", ("reserved", "review_closed")),
     # Comparison building blocks: single-passage features a consumer may pair and compare.
     MarkerSpec("agentless_passive", "agentless-v1", "comparison",

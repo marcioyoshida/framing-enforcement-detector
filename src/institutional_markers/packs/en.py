@@ -78,33 +78,50 @@ EXCEPTION = [
 ]
 
 # --- burden ------------------------------------------------------------------------------
-_NOT_TAX = r"(?:(?!tax\b|financial\b|economic\b|regulatory\b|administrative\b|fiscal\b|debt\b|cost\b)\w+\s+)?"
+# burden-v2 (2026-11-15): v1 measured 0.39 on a consumer's real corpora (n=77). "Burden" now
+# only in the proof sense (paperwork "hour burden" and who "bears the burden" of a payment
+# were most English errors); a presumption only as an ACT on it (rebutted, overcome) — bare
+# mentions and "is presumed" were 2 of 12; nothing inside a party's reported argument.
+_PROOF = r"(?:proof|persuasion|production|going\s+forward|(?:proving|showing|establishing|demonstrating))"
+_ADJ = (r"(?:(?!tax\b|paperwork\b|hour\b|hours\b|reporting\b|recordkeeping\b|compliance\b|financial\b"
+        r"|economic\b|regulatory\b|administrative\b|fiscal\b|debt\b|cost\b|disease\b|annual\b|total\b)"
+        r"[\w-]+\s+){0,2}")
+#: Words that put the span inside a party's reported argument ("the State argues that the
+#: burden rests on …"): the author is not assigning it.
+_ARGUED = frozenset({"argues", "argued", "contends", "contended", "asserts", "asserted", "claims",
+                     "claimed", "maintains", "maintained", "urges", "urged", "insists", "insisted",
+                     "suggests", "suggested", "posits", "posited", "submits", "submitted"})
+_BUR = dict(subtype="burden", modal_defines=True, blocked_by=_ARGUED)
+_PRES = dict(subtype="presumption", negatable=False, modal_defines=True, blocked_by=_ARGUED)
 BURDEN = [
+    # met / carried / discharged its (prima facie) burden — act verbs, proof sense
     Pattern("bur-met",
             r"(?:met|meet|meets|carried|carry|carries|discharged|discharge|discharges|satisfied|satisfy"
-            r"|satisfies|sustained|sustain|sustains|bears|bore|bear|shouldered|shoulders)\s+"
-            r"(?:its|their|his|her|the|this|that|a|an)\s+" + _NOT_TAX + r"(?:burden|onus)(?!\s+on\s+(?:small|business))",
-            subtype="burden", negatable=False, modal_defines=True),
+            r"|satisfies|sustained|sustain|sustains)\s+(?:its|their|his|her|the|this|that|a|an)\s+" + _ADJ
+            + r"(?:burden|onus)(?:\s+of\s+" + _PROOF + r")?",
+            negatable=False, **_BUR),
+    # bears / shoulders the burden — only "of proof" and its kin
+    Pattern("bur-bears",
+            r"(?:bears|bore|bear|bearing|shouldered|shoulders|shoulder)\s+(?:the|its|their|his|her|a|an)\s+"
+            + _ADJ + r"(?:burden|onus)\s+of\s+" + _PROOF, **_BUR),
+    # the burden of proof rests on …
     Pattern("bur-rests",
-            r"(?:burden|onus)(?:\s+of\s+(?:proof|persuasion|production|(?:proving|showing|establishing"
-            r"|demonstrating)(?:\s+[^.;:]{0,80}?)?))?\s+(?:is|was|lies|lay|rests|rested|remains|remained|falls|fell|shifts|shifted"
-            r"|(?:shall|will|must|should)\s+(?:be|rest|lie|fall|remain))\s+(?:squarely\s+|firmly\s+)?(?:on|upon|with)",
-            subtype="burden", modal_defines=True),
+            r"(?:burden|onus)\s+of\s+" + _PROOF + r"(?:\s+[^.;:]{0,80}?)?\s+(?:is|was|lies|lay|rests|rested|remains"
+            r"|remained|falls|fell|shifts|shifted|(?:shall|will|must|should)\s+(?:be|rest|lie|fall|remain))\s+"
+            r"(?:squarely\s+|firmly\s+)?(?:on|upon|with)", **_BUR),
+    # the burden is on the Government to prove …
+    Pattern("bur-is-on-to",
+            r"(?:burden|onus)\s+(?:is|was|lies|rests|remains)\s+(?:squarely\s+|firmly\s+)?(?:on|upon|with)\s+"
+            r"(?:the\s+)?[\w'-]+(?:\s+[\w'-]+){0,2}\s+to\s+(?:prove|show|establish|demonstrate|justify|rebut)",
+            **_BUR),
     Pattern("bur-shift",
-            r"(?:shifted|shifts|shifting|reversed|reverses|reversing|placed|places|placing|put|puts)\s+the\s+"
-            r"(?:burden|onus)(?:\s+of\s+proof)?", subtype="burden", modal_defines=True),
-    Pattern("pres-presumed",
-            r"(?:is|are|was|were|be|been)\s+presumed\s+(?:to|that|valid|lawful|innocent|correct|regular"
-            r"|legitimate|genuine|authentic|true|accurate|reasonable|constitutional|in\s+good\s+faith)",
-            subtype="presumption", modal_defines=True),
-    Pattern("pres-presumption",
-            r"presumption\s+(?:of\s+\w+(?:\s+\w+)?\s+)?(?:applies|applied|attaches|attached"
-            r"|arises|arose|was\s+rebutted|has\s+been\s+rebutted|is\s+rebutted|stands|was\s+not\s+rebutted"
-            r"|has\s+not\s+been\s+rebutted|was\s+overcome|governs|operates)",
-            subtype="presumption", negatable=False, modal_defines=True),
+            r"(?:shifted|shifts|shifting|reversed|reverses|reversing|placed|places|placing)\s+the\s+"
+            r"(?:burden|onus)\s+of\s+" + _PROOF, **_BUR),
+    Pattern("pres-rebutted",
+            r"presumption\s+(?:of\s+[\w-]+(?:\s+[\w-]+)?\s+)?(?:was|has\s+been|had\s+been|is|is\s+not|was\s+not"
+            r"|has\s+not\s+been)\s+(?:rebutted|overcome|displaced)", **_PRES),
     Pattern("pres-rebut",
-            r"(?:rebutted|rebuts|overcame|overcome|overcomes|displaced)\s+the\s+presumption",
-            subtype="presumption", negatable=False, modal_defines=True),
+            r"(?:rebutted|rebuts|overcame|overcome|overcomes|displaced|displaces)\s+the\s+presumption", **_PRES),
 ]
 
 # --- discretion --------------------------------------------------------------------------

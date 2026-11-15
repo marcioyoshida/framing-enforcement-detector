@@ -84,3 +84,18 @@ they are the v0.2 candidates, to be confirmed on a fresh set):
   because of its iron arches".
 - **`invoked` disagreements (3):** "could not meet the burden" and "must now justify" read
   as defining by their modal; "nos termos do edital, presume-se" read as applied.
+
+## v0.2.0: `burden-v2` on `heldout2.jsonl`
+
+`burden-v2` was changed because of errors on a consumer's real corpora, not on this set, so
+this set still measures it fairly. Only the burden rows move (`heldout2_result_v0.2.0.json`):
+
+| Marker | Lang | v1 P | v1 R | v2 P | v2 R |
+|---|---|---|---|---|---|
+| burden | en | 1.00 | 0.91 | 1.00 | 0.55 |
+| burden | pt | 1.00 | 0.82 | 1.00 | 0.46 |
+
+Recall drops because v2 no longer counts "is presumed", "presume-se" or a "burden" without
+proof language. On invented text those were mostly right; on real decisions they were
+mostly wrong (v1 measured 0.39 there). **Invented-text precision did not predict real
+precision for this marker.**
