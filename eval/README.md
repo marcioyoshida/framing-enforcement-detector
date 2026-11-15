@@ -99,3 +99,9 @@ Recall drops because v2 no longer counts "is presumed", "presume-se" or a "burde
 proof language. On invented text those were mostly right; on real decisions they were
 mostly wrong (v1 measured 0.39 there). **Invented-text precision did not predict real
 precision for this marker.**
+
+## v0.3.0: `burden-v3`
+
+Portuguese-only change (a burden rule reported rather than stated is dropped). The library
+reference set does not exercise it: every row is identical to v0.2.0
+(`heldout2_result_v0.3.0.json`).

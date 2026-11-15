@@ -95,8 +95,14 @@ _ARGUED = frozenset({"alega", "alegou", "alegam", "alegaram", "sustenta", "suste
                      "argumenta", "argumentou", "argumentam", "defende", "defendeu", "aduz", "aduziu",
                      "aduzem", "requer", "requereu", "pleiteia", "pleiteou", "insiste", "insistiu",
                      "afirma", "afirmou", "assevera", "asseverou", "pondera", "ponderou"})
-_BUR = dict(subtype="burden", modal_defines=True, blocked_by=_ARGUED)
-_PRES = dict(subtype="presumption", negatable=False, modal_defines=True, blocked_by=_ARGUED)
+# burden-v3 (2026-11-15): v2 measured pt 0.79 (23 of 29) on a consumer's audit-court corpus.
+# The misses were a rule REPORTED, not stated by the author: a quoted precedent ("Enunciado
+# do Acórdão …: cabe ao ordenador provar …"), the case law cited "no sentido de que …", and a
+# party's view the court rejects ("Equivoca-se a responsável ao entender que cabe …").
+_REPORTED = frozenset({"enunciado", "sumula", "verbete", "sentido", "entende", "entendeu", "entender",
+                       "entendem", "entenderam"})
+_BUR = dict(subtype="burden", modal_defines=True, blocked_by=_ARGUED | _REPORTED)
+_PRES = dict(subtype="presumption", negatable=False, modal_defines=True, blocked_by=_ARGUED | _REPORTED)
 BURDEN = [
     Pattern("bur-cabe",
             r"(?:cabe|cabia|cabera|caberia|incumbe|incumbia|incumbira|incumbiria|compete|competia|competira)"
@@ -115,7 +121,7 @@ BURDEN = [
     Pattern("bur-desincumbiu",
             r"(?:se\s+)?desincumb(?:iu|iram|ir|indo|e|em|iria)(?:-se)?\s+(?:a\s+contento\s+)?"
             r"d[oa]\s+(?:seu\s+|sua\s+|respectivo\s+)?(?:onus|encargo)(?:\s+(?:probatorio|da\s+prova|de\s+(?:provar|comprovar)))?",
-            subtype="burden", negatable=False, modal_defines=True, blocked_by=_ARGUED),
+            subtype="burden", negatable=False, modal_defines=True, blocked_by=_ARGUED | _REPORTED),
     Pattern("pres-afastou",
             r"(?:afast(?:ou|aram|ad[oa])|ilid(?:iu|iram|id[oa])|elid(?:iu|iram|id[oa])|infirm(?:ou|aram|ad[oa])"
             r"|derrub(?:ou|aram|ad[oa]))\s+(?:a\s+)?presuncao", **_PRES),

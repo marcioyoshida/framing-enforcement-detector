@@ -78,6 +78,14 @@ CASES = [
     ("pt", "O Tribunal afastou a presunção de boa-fé do gestor.", "burden",
      [("afastou a presunção", "presumption", True)]),
     ("pt", "O responsável alega que cabe ao Tribunal comprovar o dano.", "burden", []),
+    # burden-v3: a rule reported (precedent, case law, a party's view) is not the author's
+    ("pt", "Enunciado do Acórdão 10/2020: em direito financeiro, cabe ao gestor provar a aplicação.",
+     "burden", []),
+    ("pt", "A jurisprudência é pacífica no sentido de que compete ao gestor demonstrar o uso dos recursos.",
+     "burden", []),
+    ("pt", "Equivoca-se o responsável ao entender que cabe ao Tribunal comprovar o dano.", "burden", []),
+    ("pt", "Rejeito a defesa. Cabe ao gestor comprovar a boa aplicação dos recursos.", "burden",
+     [("Cabe ao gestor comprovar", "burden", True)]),
     # --- burden-v2: proof sense only, en ------------------------------------------------
     ("en", "The estimated paperwork burden is 3 hours per response.", "burden", []),
     ("en", "Small entities would bear the burden of the new fee.", "burden", []),

@@ -4,6 +4,23 @@ Package versions follow semver (ADR 0001 §7): patch = docs/tests only; minor = 
 or a marker version bump; major = an interface change. **Every marker version change is
 listed here.** A consumer that upgrades re-measures the markers whose version changed.
 
+## 0.3.0 — 2026-11-15
+
+- `burden` **burden-v2 → burden-v3** (Portuguese rules only; English behaves as in v2, but
+  the version string is per marker, so consumers re-measure `burden` in both languages).
+  - Why: measured by a consumer on fresh audit-court and court documents, blind, every hit:
+    **v2 precision 0.58 (35 of 60): pt 0.79 (23 of 29), en 0.39 (12 of 31).** The pt misses
+    were a burden rule REPORTED rather than stated by the author: a quoted precedent
+    ("Enunciado do Acórdão …"), case law cited "no sentido de que …", a party's view the court
+    rejects ("ao entender que …"). A pt burden is now dropped when its clause holds one of
+    those cues.
+  - English is NOT fixed: court opinions state who bears a burden as abstract doctrine far
+    more often than they apply it, and wording does not separate the two. A consumer with a
+    court-heavy English corpus should not rely on `burden` in English.
+  - Known limit (unchanged since v0.1.0): the three-word negation window can cross a comma
+    ("não procede, pois cabe ao gestor …" is dropped). Fixing it touches every marker.
+  - Library reference set (`eval/heldout2.jsonl`): unchanged from v0.2.0.
+
 ## 0.2.0 — 2026-11-15
 
 - `burden` **burden-v1 → burden-v2.** Consumers re-measure `burden`; every other marker is
