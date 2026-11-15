@@ -66,7 +66,9 @@ class Hit:
     end: int
     quote: str           # always == text[start:end]; checked before return
     pattern_id: str      # which pattern fired, for error analysis
-    invoked: bool        # applied in this text (True) vs only defined or quoted (False)
+    subtype: str | None  # a closed class within the marker, e.g. "distancing"; None if the marker has none
+    invoked: bool        # in this text's own voice and applied here (True) vs only defined,
+                         # quoted or reported from someone else (False)
 ```
 
 - **Every hit is a verbatim span.** `quote == text[start:end]` is asserted before return.
@@ -92,11 +94,51 @@ These come from a consumer's relation-class tables, where each rule fixed a meas
 
 ## 4. Markers in the first version
 
+Six markers in two groups: three that show how an institution applies its rules, and three
+building blocks a consumer can compare across parties.
+
+### Institutional markers
+
 | Marker | Version | Protocol dims | Invoked when the text… | en / pt examples |
 |---|---|---|---|---|
 | `exception_clause` | `exception-v1` | 10 | suspends, waives or overrides an ordinary rule **for this matter** | "the waiver is granted", "under emergency authority, the requirement is suspended" / "fica dispensada a licitação", "em caráter emergencial" |
 | `burden` | `burden-v1` | 8, 9 | assigns a burden of proof or a presumption to a party | "the applicant has not met its burden", "is presumed" / "cabe ao responsável comprovar", "presume-se" |
 | `discretion` | `discretion-v1` | 1 (wording), 3 (decision rights), 11 (wording) | reserves judgment or closes review | "at the discretion of the Director", "not subject to review" / "a critério da autoridade", "decisão irrecorrível" |
+
+### Comparison building blocks
+
+Asymmetric language is a **difference between two comparable passages**: the same act, or
+the same rule, described differently for different parties. The library never compares.
+These three markers are the single-passage features a consumer can pair and compare
+itself. They are lexical, they give the same answer on every run, and readers recognise
+them once they are pointed out.
+
+| Marker | Version | Protocol dims | Subtypes | Fires on | en / pt examples |
+|---|---|---|---|---|---|
+| `agentless_passive` | `agentless-v1` | 3, 14 (wording) | `harm`, `sanction`, `removal`, `error` | a **past-tense** passive of a verb from a closed list, with **no agent phrase** in the same clause | "two protesters were killed", "the account was suspended", "mistakes were made" / "foram mortos dois manifestantes", "o perfil foi suspenso", "foram cometidos erros" |
+| `hedge` | `hedge-v1` | 8, 15 (wording) | `adverb`, `label`, `report_conditional` | an epistemic hedge or distancing label attached to a claim | "reportedly", "allegedly", "purportedly", "so-called" / "supostamente", "alegadamente", "o chamado", "segundo relatos", and the reporting conditional "teria desviado" |
+| `attribution_verb` | `attribution-v1` | 8, 15 (wording) | `neutral`, `distancing`, `endorsing` | a verb that introduces someone's statement, classified by a closed table | neutral "said", "stated" / "disse", "afirmou"; distancing "claimed", "alleged", "insisted" / "alegou", "alega", "insistiu"; endorsing "confirmed", "revealed", "acknowledged" / "confirmou", "revelou", "reconheceu" |
+
+Rules specific to these three:
+
+- **`agentless_passive` uses a closed verb list, past tense only.** Statutes and
+  regulations are full of agentless passives ("the form shall be submitted", "deverá ser
+  apresentado"), so modal and future passives never fire. Neither do adjectival passives
+  ("is located", "está situado"). A clause with an agent ("by the police", "pela polícia")
+  is not agentless and returns nothing.
+- **`hedge` and `attribution_verb` inside a direct quotation are `invoked=False`.** They
+  belong to the person quoted, not to the text's own voice.
+- **No actor is attached.** Who a hedge or a passive is about is the consumer's
+  entity-resolution job. The library returns the span. The consumer decides which actor or
+  case it belongs to, and whether two spans are comparable.
+- **A single hit means nothing about bias, and consumers must not show it as bias.**
+  "Allegedly" is often a legal requirement when reporting an unproven accusation, and a
+  passive is often just style. The signal, if there is one, is the **difference in
+  distribution between comparable cases**. That comparison is the consumer's decision,
+  under its own display rules (§5).
+- **Base rate:** all three occur in almost every text. Their per-span precision is
+  measurable (§6), but a raw count separates nothing. A consumer that elects or scores
+  anything from counts alone will be measuring the base rate.
 
 **Next candidates:** the README's three **counter-signals** (`provenance_disclosure`,
 `symmetric_criteria`, `acknowledged_limits`). They are neutral, observable wording, and a
@@ -108,10 +150,11 @@ from v1 only to keep the first measurement small.
 | Protocol part | Why it stays out |
 |---|---|
 | 0–5 scores, composite, max-cluster, dominant profile | not observable as a span; un-measurable as one number |
-| Dims 2, 4, 6, 14 | they need two cases compared, or a reading of effect or intent |
+| Asymmetry itself: comparing spans across parties or cases | deciding that two cases are comparable is a judgment. The library returns the building blocks (§4); pairing and comparing them is the consumer's call |
+| Dims 2, 4, 6, 14 as scores | they need two cases compared, or a reading of effect or intent. Dim 14's wording appears only as `agentless_passive` spans |
 | Dims 5, 13 | they need a "relies on" edge between bodies. If wanted, that is a relation detector and a separate ADR |
 | Dims 7, 12 | they need a corpus over time. Consumers that keep release histories compute them there |
-| Dims 15–19 | proxy indirection and circular citation need multiple documents; dialect mimicry, whataboutism and flooding judge intent |
+| Dims 15–19 as scores (dim 15's wording appears only as `hedge` and `attribution_verb` spans) | proxy indirection and circular citation need multiple documents; dialect mimicry, whataboutism and flooding judge intent |
 | Pairwise / comparative mode | the consumer's choice and the consumer's corpus; some consumers ban cross-document synthesis |
 | Display names, colours, verdict words | each consumer's display rules govern what a reader sees |
 
@@ -123,7 +166,11 @@ distribution moved away from the other. So:
 
 - **The library ships `rubrics/<marker>.md`:** one yes/no question per marker (*"Does this
   span itself invoke an exception that applies in this text's matter?"*), positive and
-  negative examples (invoked, defined, quoted, negated), and a JSONL label schema.
+  negative examples (invoked, defined, quoted, negated), and a JSONL label schema. For the
+  comparison markers the question is about form, not effect (*"Is this a past-tense
+  passive with no agent in its clause?"*, *"Does this word hedge the claim it is attached
+  to?"*). A marker's subtype (`distancing`, `harm`, …) is labelled and measured separately
+  from whether the span is a hit at all.
 - **Each consumer measures its own precision row** (n ≥ 30 spans per language, labelled by
   someone other than the person tuning) and keys it by the marker `version`. A version the
   consumer has not measured contributes nothing.
@@ -178,7 +225,8 @@ consumer enforces. The marker library stays as its deterministic first pass.
 ## 9. Open questions for the owner
 
 1. **Package name:** `institutional-markers`, or another?
-2. **First markers:** the three in §4, or start with only `exception_clause` and add the
+2. **First markers:** all six in §4, or the three institutional markers first and the
+   comparison building blocks in v0.2? Or start with only `exception_clause` and add the
    others after it is measured?
 3. **Counter-signals:** add them in v1, or keep them as next?
 4. **Where it lives:** in this repository beside the protocol (proposed), or a separate repo?
