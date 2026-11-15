@@ -1,7 +1,10 @@
 # ADR 0001 — A shared marker library, not a scoring service
 
 - **Status:** PROPOSED 2026-11-15. Nothing built. **Owner decided 2026-11-15: all six
-  markers ship in v1** (§9 Q2). The other §9 questions are open.
+  markers ship in v1** (§9 Q2). **v0.1.0 BUILT 2026-11-15** with the proposed defaults
+  (name `institutional-markers`, this repository, counter-signals not in v1): reference
+  measurement on a blind held-out set, span precision 0.987, recall 0.814 (`eval/README.md`).
+  §9 Q1, Q3 and Q4 can still be revisited.
 - **Context date:** repository at `d7493de` (dimensions 1–19, counter-signals, scoring prompts).
 - **Decision owner:** the repository owner (§9).
 

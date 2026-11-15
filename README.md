@@ -84,9 +84,56 @@ Ready-to-use prompt templates are in the [`prompts/`](prompts/) directory:
 
 Comparative / longitudinal mode (scoring against prior texts from the same institution) substantially improves detection of the subtler dimensions.
 
+## Implementation: `institutional-markers` (deterministic markers)
+
+The observable part of the protocol — wording you can point to in one text — is
+implemented as a small Python library in [`src/institutional_markers/`](src/institutional_markers/).
+It does **not** score, compare or judge. See [ADR 0001](docs/adr/0001-shared-marker-library.md).
+
+- Python ≥ 3.11, standard library only. No model, no network, no state.
+- English and Portuguese (Brazil).
+- Every hit is a verbatim span: `hit.quote == text[hit.start:hit.end]`.
+
+```python
+from institutional_markers import scan
+
+for h in scan("Two protesters were killed on Tuesday, the ministry claimed that police acted lawfully."):
+    print(h.marker, h.subtype, repr(h.quote), h.invoked)
+# agentless_passive harm 'were killed' True
+# attribution_verb distancing 'claimed' True
+```
+
+| Marker | Group | Protocol dims | Subtypes |
+|---|---|---|---|
+| `exception_clause` | institutional | 10 | — |
+| `burden` | institutional | 8, 9 | burden, presumption |
+| `discretion` | institutional | 1, 3, 11 (wording) | reserved, review_closed |
+| `agentless_passive` | comparison | 3, 14 (wording) | harm, sanction, removal, error |
+| `hedge` | comparison | 8, 15 (wording) | adverb, label, report_conditional |
+| `attribution_verb` | comparison | 8, 15 (wording) | neutral, distancing, endorsing |
+
+`scan(text, lang="en", markers=None, exclude=(), include_defined=False)`:
+`exclude` takes spans you already know are quoted law or citations; `include_defined=True`
+also returns hits that only define a rule ("may waive") or sit inside a quotation.
+
+**A single hit is not evidence of bias.** "Allegedly" is often legally required, and a
+passive is often just style. Comparison markers only mean something when a consumer pairs
+comparable cases, and that comparison is the consumer's decision.
+
+**Measure before you rely on it.** Precision measured on one corpus does not transfer to
+another. Label a sample of your own pages with the [rubrics](rubrics/) and key the result
+by `hit.version`. The repository's own reference measurement is in [`eval/`](eval/).
+
+```bash
+python3 -m pytest                       # unit tests
+python3 -I scripts/measure.py eval/heldout2.jsonl   # score a labelled set
+```
+
+Install a pinned tag: `pip install "institutional-markers @ git+https://github.com/marcioyoshida/framing-enforcement-detector@v0.1.0"`.
+
 ## License
 
-MIT — see LICENSE if added.
+MIT — see [LICENSE](LICENSE).
 
 ---
 
