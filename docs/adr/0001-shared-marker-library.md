@@ -1,6 +1,7 @@
 # ADR 0001 — A shared marker library, not a scoring service
 
-- **Status:** PROPOSED 2026-11-15. Nothing built.
+- **Status:** PROPOSED 2026-11-15. Nothing built. **Owner decided 2026-11-15: all six
+  markers ship in v1** (§9 Q2). The other §9 questions are open.
 - **Context date:** repository at `d7493de` (dimensions 1–19, counter-signals, scoring prompts).
 - **Decision owner:** the repository owner (§9).
 
@@ -95,7 +96,9 @@ These come from a consumer's relation-class tables, where each rule fixed a meas
 ## 4. Markers in the first version
 
 Six markers in two groups: three that show how an institution applies its rules, and three
-building blocks a consumer can compare across parties.
+building blocks a consumer can compare across parties. **All six ship in v1** (owner,
+2026-11-15). That means 12 pattern packs (six markers × en, pt), six rubrics, and fixtures
+for every marker and language before the first tag.
 
 ### Institutional markers
 
@@ -225,8 +228,7 @@ consumer enforces. The marker library stays as its deterministic first pass.
 ## 9. Open questions for the owner
 
 1. **Package name:** `institutional-markers`, or another?
-2. **First markers:** all six in §4, or the three institutional markers first and the
-   comparison building blocks in v0.2? Or start with only `exception_clause` and add the
-   others after it is measured?
-3. **Counter-signals:** add them in v1, or keep them as next?
+2. ~~**First markers:** all six in §4, or the three institutional markers first?~~
+   **DECIDED 2026-11-15: all six ship in v1.**
+3. **Counter-signals:** add them in v1 as well (nine markers), or keep them as next?
 4. **Where it lives:** in this repository beside the protocol (proposed), or a separate repo?
