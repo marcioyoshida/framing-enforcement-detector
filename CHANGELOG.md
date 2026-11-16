@@ -21,6 +21,12 @@ listed here.** A consumer that upgrades re-measures the markers whose version ch
   transcribed opinions), doctrine, "case-by-case" meaning how common law develops, and
   the bare noun "discricionariedade" in headings. New hard cases in
   `rubrics/discretion.md`; no code change.
+- Comparison markers: the same consumer measured **agentless-v1, hedge-v1 and
+  attribution-v1** (unchanged since 0.1.0) on real legal and audit text, blind, default mode
+  (a hit counts when the form is right and the span is in the document's own voice).
+  en / pt: `agentless_passive` **0.94 / 0.75** (pt n = 28), `hedge` **0.97 / 0.86**,
+  `attribution_verb` **0.69 / 0.86**. The misses are listed in `eval/README.md` as v0.4
+  candidates; no code change.
 
 ## 0.3.0 — 2026-11-15
 

@@ -142,3 +142,45 @@ decisions, party arguments, transcribed opinions, statute text), 12 doctrine and
 senses (common-law "case-by-case", section headings). Telling a court's own holding from
 its account of someone else's words is not something a word list can do.
 
+## Consumer measurements of the comparison markers on real documents
+
+Same consumer, 2026-11-16, library 0.3.0. One blind labeller per marker and language,
+who saw only that marker's rubric, rulings written before labelling, and the sample (up
+to 35 hits per cell, at most 4 per document in English and 6 in Portuguese, except
+passives, which were taken whole). **Default mode**: the hits a consumer sees (`invoked`
+only). A hit counts when the labeller says the form is right **and** the span is in the
+document's own voice, not inside a direct quotation.
+
+Corpus: **en**, US federal criminal and civil court filings released by a prosecutor's
+office (100 documents, mostly OCR'd scans); **pt**, audit-court decisions (9 decisions,
+551 pages). Legal and audit text, not news: a news consumer still measures its own.
+
+| Marker | Version | en | pt | Subtype accuracy (correct hits) |
+|---|---|---|---|---|
+| agentless_passive | agentless-v1 | 0.94 (33 of 35) | 0.75 (21 of 28) | en 33/33, pt 22/25 |
+| hedge | hedge-v1 | 0.97 (34 of 35) | 0.86 (30 of 35) | 34/34, 33/33 |
+| attribution_verb | attribution-v1 | 0.69 (24 of 35) | 0.86 (30 of 35) | 27/27, 31/31 |
+
+The Portuguese passive cell is under 30 because the whole corpus held only 28 hits.
+
+**What went wrong.** These were recorded but NOT fixed. Each fix needs a fresh blind set,
+so they are the v0.4 candidates:
+
+- **Quotation the library did not see** (12 hits across cells): excerpts transcribed with
+  "(...)" elisions and no opening mark in view, block quotes of a party's petition, a
+  quoted e-mail, and a filing quoting another party's language.
+- **Fixed phrases that are not speech** (`attribution_verb`): pt "no que diz respeito" /
+  "diz respeito" (3 hits), "se mostram" ("prove to be"); en "said" as an adjective ("said
+  Commonwealth"), "unless otherwise stated", "something to be said for", "writes
+  eloquently" (manner, no statement).
+- **Negation and modality missed** (`attribution_verb`): "nowhere alleges", modal "could
+  say", present-habitual "the agreements say".
+- **Wrong verb sense** (`agentless_passive`): pt "foi atingida / atingido" means "was
+  reached" in audit text, not harm (3 hits, subtype wrong); an agent named by "pela/pelo"
+  after an adverb and a line break was missed (2 hits); hypothetical "after it has been
+  removed" (en).
+- **True counterfactuals read as reporting conditionals** (`hedge`, pt): "se … não tivesse
+  sido firmado, … teria sido firmado".
+- **"So-called" introducing a technical term** without doubt ("the so-called KYC
+  standard"): 1 hit.
+
