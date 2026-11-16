@@ -44,12 +44,17 @@ def scan(
             raise ValueError(f"unknown marker {name!r}; one of {tuple(MARKERS)}")
     pack = PACKS[lang]
     folded = fold(text)
-    clauses = Clauses(text)
-    quotes = quoted_intervals(folded)
+    # Institutional markers keep the hard clause and quote rules their versions were
+    # measured with; comparison markers read across PDF line wraps (see _context).
+    ctx = {
+        "institutional": (Clauses(text), quoted_intervals(folded)),
+        "comparison": (Clauses(text, soft_wrap=True), quoted_intervals(folded, elided_open=True)),
+    }
     excluded = [tuple(s) for s in exclude]
 
     hits: list[Hit] = []
     for name in names:
+        clauses, quotes = ctx[MARKERS[name].group]
         found = [h for p in pack.PATTERNS.get(name, ()) for h in _apply(
             p, name, text, folded, clauses, quotes, excluded, pack)]
         hits.extend(_dedupe(found))
@@ -73,6 +78,8 @@ def _apply(p: Pattern, name: str, text: str, folded: str, clauses: Clauses,
         if p.modal_blocks and before and before[-1] in pack.MODALS:
             continue
         if p.blocked_by and set(before) & p.blocked_by:
+            continue
+        if p.blocked_after and set(tokens(folded[end:min(c_end, end + AGENT_WINDOW)])) & p.blocked_after:
             continue
         if p.agent_check:
             after = folded[end:min(c_end, end + AGENT_WINDOW)]

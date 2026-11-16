@@ -11,9 +11,16 @@ _WORD = re.compile(r"\w+")
 _STOP = re.compile(r"[;!?\n]|\.(?=\s+[A-ZÀ-Ý\"“«']|\s*$)")
 
 
+#: Comparison markers (since agentless-v2, hedge-v2, attribution-v2): a line break ends a
+#: clause only at a blank line. PDF and OCR text wraps every line, and a hard stop at each
+#: wrap hid agents ("foi\ntotalmente ignorada pela auditoria"), negators and hypotheticals.
+_SOFT_STOP = re.compile(r"[;!?]|\n[ \t]*\n|\.(?=\s+[A-ZÀ-Ý\"“«']|\s*$)")
+
+
 class Clauses:
-    def __init__(self, original: str) -> None:
-        self._stops = [m.start() for m in _STOP.finditer(original)]
+    def __init__(self, original: str, soft_wrap: bool = False) -> None:
+        stop = _SOFT_STOP if soft_wrap else _STOP
+        self._stops = [m.start() for m in stop.finditer(original)]
         self._len = len(original)
 
     def bounds(self, start: int, end: int) -> tuple[int, int]:
@@ -33,14 +40,21 @@ def tokens(folded: str) -> list[str]:
 #: letter; it closes one after a non-space and before whitespace, punctuation or the end.
 #: An apostrophe between letters ("agency's", "d'água") is neither.
 _SQ_OPEN = re.compile(r"(?:^|(?<=[\s(\[{:—-]))'(?=[\w\"])")
+#: Comparison markers also open a quotation on an elided start: "('... revogada cautelar".
+_SQ_OPEN_ELIDED = re.compile(r"(?:^|(?<=[\s(\[{:—-]))'(?=[\w\"]|\.\.\.|…)")
 _SQ_CLOSE = re.compile(r"(?<=[^\s'])'(?=[\s.,;:!?)\]}\"]|$)")
 
 
-def quoted_intervals(folded: str) -> list[tuple[int, int]]:
-    """Interiors of quoted passages. Typographic quotes are already folded to '"' and "'"."""
-    marks = [i for i, c in enumerate(folded) if c == '"']
-    spans = [(marks[k] + 1, marks[k + 1]) for k in range(0, len(marks) - 1, 2)]
-    opens = [m.start() for m in _SQ_OPEN.finditer(folded)]
+def quoted_intervals(folded: str, elided_open: bool = False) -> list[tuple[int, int]]:
+    """Interiors of quoted passages. Typographic quotes are already folded to '"' and "'".
+
+    ``elided_open`` (comparison markers): a single quote before "..." also opens one."""
+    if elided_open:
+        spans = _directional_double(folded)
+    else:
+        marks = [i for i, c in enumerate(folded) if c == '"']
+        spans = [(marks[k] + 1, marks[k + 1]) for k in range(0, len(marks) - 1, 2)]
+    opens = [m.start() for m in (_SQ_OPEN_ELIDED if elided_open else _SQ_OPEN).finditer(folded)]
     closes = [m.start() for m in _SQ_CLOSE.finditer(folded)]
     ci = 0
     for o in opens:
@@ -52,6 +66,27 @@ def quoted_intervals(folded: str) -> list[tuple[int, int]]:
             spans.append((o + 1, closes[ci]))
         ci += 1
     return sorted(spans)
+
+
+_DQ_OPEN = re.compile(r'(?:^|(?<=[\s(\[{:—-]))"(?=\S)')
+_DQ_CLOSE = re.compile(r'(?<=\S)"(?=[\s.,;:!?)\]}]|$)')
+
+
+def _directional_double(folded: str) -> list[tuple[int, int]]:
+    """Double quotes paired by direction, not by count (comparison markers). A mark after a
+    space that starts a word opens; a mark after a word, before a space or punctuation,
+    closes. One stray mark (a quotation opened on an earlier page, OCR noise) then no longer
+    flips every pair after it."""
+    marks = sorted([(m.start(), "o") for m in _DQ_OPEN.finditer(folded)]
+                   + [(m.start(), "c") for m in _DQ_CLOSE.finditer(folded)])
+    spans, open_at = [], None
+    for pos, kind in marks:
+        if kind == "o" and open_at is None:
+            open_at = pos
+        elif kind == "c" and open_at is not None and pos > open_at:
+            spans.append((open_at + 1, pos))
+            open_at = None
+    return spans
 
 
 def window_start(c_start: int, start: int, quotes: list[tuple[int, int]]) -> int:

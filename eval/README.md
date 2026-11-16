@@ -163,8 +163,8 @@ office (100 documents, mostly OCR'd scans); **pt**, audit-court decisions (9 dec
 
 The Portuguese passive cell is under 30 because the whole corpus held only 28 hits.
 
-**What went wrong.** These were recorded but NOT fixed. Each fix needs a fresh blind set,
-so they are the v0.4 candidates:
+**What went wrong.** These were the v0.4 candidates; v0.4.0 fixed most of them (see
+`CHANGELOG.md` and the v2 measurement below):
 
 - **Quotation the library did not see** (12 hits across cells): excerpts transcribed with
   "(...)" elisions and no opening mark in view, block quotes of a party's petition, a
@@ -183,4 +183,33 @@ so they are the v0.4 candidates:
   sido firmado, … teria sido firmado".
 - **"So-called" introducing a technical term** without doubt ("the so-called KYC
   standard"): 1 hit.
+
+### v2 (library 0.4.0) on fresh documents
+
+Same consumer, same rulings, six **new** blind labellers, 2026-11-16. The documents were
+never labelled for these markers. **en**: supreme-court and appeals-court opinions plus a
+few agency rules (25–29 documents per cell). **pt**: audit-court decisions (27–30 per
+cell). 35 hits per cell, at most 3 per document, default mode.
+
+| Marker | Version | en | pt | Subtype accuracy (correct hits) |
+|---|---|---|---|---|
+| agentless_passive | agentless-v2 | 1.00 (35 of 35) | 0.94 (33 of 35) | 35/35, 32/33 |
+| hedge | hedge-v2 | 0.94 (33 of 35) | 0.89 (31 of 35) | 33/33, 34/34 |
+| attribution_verb | attribution-v2 | 0.91 (32 of 35) | 0.94 (33 of 35) | 32/32, 34/34 |
+
+The corpus differs from the v1 measurement (opinions, not filings), so read the two tables
+side by side, not as a controlled A/B.
+
+**Remaining errors** (v0.5 candidates, not fixed):
+
+- **Quotation the library cannot see** (pt, 4): a party's petition or a newspaper excerpt
+  reproduced as a block without marks ("grifo do peticionante").
+- `attribution_verb`: en "claims" as a plural noun before a that-clause ("claims that were
+  dismissed"), "says nothing" (negation by object); pt "aponta para" + noun ("points to",
+  evidence, not speech).
+- `hedge`: en "so-called" before a neutral legal term ("the so-called Spending Clause");
+  pt "teria sido" inside an indirect question.
+- `agentless_passive`: pt "teria sido encerrada" (a conditional auxiliary, which the rubric
+  excludes); "pela Lei 12.651" (an agent the duration/amount filter must not hide);
+  "inabilitada" typed `sanction` where the labeller read removal.
 

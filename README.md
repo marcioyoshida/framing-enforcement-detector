@@ -129,7 +129,7 @@ python3 -m pytest                       # unit tests
 python3 -I scripts/measure.py eval/heldout2.jsonl   # score a labelled set
 ```
 
-Install a pinned tag: `pip install "institutional-markers @ git+https://github.com/marcioyoshida/framing-enforcement-detector@v0.3.0"`.
+Install a pinned tag: `pip install "institutional-markers @ git+https://github.com/marcioyoshida/framing-enforcement-detector@v0.4.0"`.
 
 ## License
 

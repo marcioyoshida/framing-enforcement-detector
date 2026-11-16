@@ -11,6 +11,55 @@ from institutional_markers import scan
 N = None  # no subtype
 
 CASES = [
+    # --- v0.4.0 comparison fixes (agentless-v2, hedge-v2, attribution-v2) -------------
+    # A PDF line wrap no longer ends the clause: the agent, the negator and the
+    # hypothetical are seen across it.
+    ("pt", "Tal circunstância foi\ntotalmente ignorada pela segunda auditoria.", "agentless_passive", []),
+    ("pt", "Os itens não\nforam removidos do contrato.", "agentless_passive", []),
+    ("en", "The account was\nsuspended by the platform.", "agentless_passive", []),
+    ("en", "The account was\nsuspended on Friday.", "agentless_passive",
+     [("was\nsuspended", "sanction", True)]),
+    # "pela segunda vez" is still not an agent; "pela segunda auditoria" is.
+    ("pt", "O perfil foi suspenso pela segunda vez.", "agentless_passive",
+     [("foi suspenso", "sanction", True)]),
+    # A duration or an amount is not an agent.
+    ("pt", "A empresa foi declarada inidônea\npelo prazo de um ano.", "agentless_passive",
+     [("foi declarada inidônea", "sanction", True)]),
+    ("pt", "A empresa foi declarada inidônea por três anos.", "agentless_passive",
+     [("foi declarada inidônea", "sanction", True)]),
+    # "atingido" means "reached" in official text: no longer a harm verb.
+    ("pt", "A finalidade da contratação foi atingida.", "agentless_passive", []),
+    # Present perfect after a future or a time/condition word is not a reported event.
+    ("en", "I will confirm that the information has been destroyed.", "agentless_passive", []),
+    ("en", "The bracelet is useless after it has been removed.", "agentless_passive", []),
+    ("en", "The post has been removed.", "agentless_passive",
+     [("has been removed", "removal", True)]),
+    # pt counterfactuals: the condition before (across a wrap) or after the span.
+    ("pt", "Se o despacho não tivesse sido assinado pelo titular (em férias,\ndoença), certamente "
+     "teria sido assinado por outra pessoa.", "hedge", []),
+    ("pt", "A proposta teria sido escolhida, caso a obra estivesse prevista no edital.", "hedge", []),
+    # "no caso" is not a hypothetical any more.
+    ("pt", "No caso sob análise, os recursos teriam sido desviados.", "hedge",
+     [("teriam sido desviados", "report_conditional", True)]),
+    # attribution: fixed phrases and adjectives that are not speech.
+    ("pt", "No que diz respeito ao presente caso, nada há a acrescentar.", "attribution_verb", []),
+    ("pt", "Os apontamentos se mostram consistentes: a cautelar se justifica.", "attribution_verb", []),
+    ("pt", "Os apontamentos se\n mostram consistentes: a cautelar se justifica.", "attribution_verb", []),
+    ("pt", "A unidade técnica mostrou que o preço estava acima do mercado.", "attribution_verb",
+     [("mostrou", "endorsing", True)]),
+    ("en", "The Court sat at Boston, within and for said County, on the first day.", "attribution_verb", []),
+    ("en", "The office is not bound unless otherwise stated.", "attribution_verb", []),
+    ("en", "There is something to be said for waiting.", "attribution_verb", []),
+    ("en", "The Complaint nowhere alleges that he knew.", "attribution_verb", []),
+    ("en", "There is nothing he could say to rebut it.", "attribution_verb", []),
+    ("en", "The lawyer said that the client would appeal.", "attribution_verb",
+     [("said", "neutral", True)]),
+    # Double quotes are paired by direction: one stray mark does not flip later pairs.
+    ("en", 'He wrote 12" of notes. The filing says "the bank claimed that it knew nothing" in 2019.',
+     "attribution_verb", [("says", "neutral", True), ("claimed", "distancing", False)]),
+    # An elided start opens a single-quoted quotation.
+    ("pt", "A concessionária cita a deliberação ('... a revogada cautelar e o suposto sobrepreço ...').",
+     "hedge", [("suposto", "label", False)]),
     # --- exception_clause, en ---------------------------------------------------------
     ("en", "The waiver is granted for the 2026 cycle.", "exception_clause",
      [("waiver is granted", N, True)]),

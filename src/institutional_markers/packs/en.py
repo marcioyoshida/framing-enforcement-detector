@@ -179,30 +179,37 @@ DISCRETION = [
 ]
 
 # --- agentless_passive -------------------------------------------------------------------
-_AUX = r"(?:was|were|has\s+been|have\s+been|had\s+been|was\s+being|were\s+being)"
+_AUX = r"(?:was|were|had\s+been|was\s+being|were\s+being)"
+#: A present perfect is a reported past event, except after a future or a time/condition
+#: subordinator in its clause: "I will confirm that the data has been destroyed", "after it
+#: has been removed" (agentless-v2).
+_AUX_PERFECT = r"(?:has\s+been|have\s+been)"
+_PERFECT_BLOCKED = frozenset({"will", "shall", "once", "until", "after", "unless", "whether", "if"})
 _ADV = r"(?:\s+(?:\w+ly|later|then|also|subsequently|eventually|soon|since|once|twice|again))?"
 _PASSIVE = dict(agent_check=True, modal_blocks=True)
 
 
-def _passive(pid: str, subtype: str, verbs: str) -> Pattern:
-    return Pattern(pid, _AUX + _ADV + r"\s+" + verbs, subtype=subtype, **_PASSIVE)
+def _passive(pid: str, subtype: str, verbs: str) -> list[Pattern]:
+    return [Pattern(pid, _AUX + _ADV + r"\s+" + verbs, subtype=subtype, **_PASSIVE),
+            Pattern(pid + "-perfect", _AUX_PERFECT + _ADV + r"\s+" + verbs, subtype=subtype,
+                    blocked_by=_PERFECT_BLOCKED, **_PASSIVE)]
 
 
 AGENTLESS = [
-    _passive("pas-harm", "harm", _alt(
+    *_passive("pas-harm", "harm", _alt(
         "killed", "injured", "wounded", "shot", "beaten", "attacked", "assaulted", "detained",
         "arrested", "imprisoned", "jailed", "deported", "evicted", "tortured", "abducted",
         "kidnapped", "displaced", "hurt", "harmed", "stabbed", "tear-gassed", "teargassed")),
-    _passive("pas-sanction", "sanction", _alt(
+    *_passive("pas-sanction", "sanction", _alt(
         "fined", "sanctioned", "penali[sz]ed", "punished", "disciplined", "censured", "reprimanded",
         "suspended", "banned", "barred", "blocked", "debarred", "blacklisted", "demoted",
         "sentenced")),
-    _passive("pas-removal", "removal", _alt(
+    *_passive("pas-removal", "removal", _alt(
         "removed", "deleted", "dismissed", "fired", "sacked", "withdrawn", "revoked", "cancell?ed",
         "terminated", "rejected", "denied", "withheld", "destroyed", "seized", "confiscated",
         "shredded", "erased", "expelled", r"shut\s+down", r"taken\s+down", r"closed\s+down",
         r"struck\s+(?:down|off)", "purged", "redacted", "scrapped", "discontinued")),
-    _passive("pas-error", "error", _alt(
+    *_passive("pas-error", "error", _alt(
         "overlooked", "mishandled", "misplaced", "mislaid", "lost", "missed", "ignored", "neglected",
         "misreported", "miscounted")),
     Pattern("pas-mistakes-made",
@@ -243,8 +250,15 @@ _CLOSE_Q = r"(?:[,.!?]\s*[\"']|[\"']\s*,)\s*(?:[\w'-]+\s+){0,3}?"
 
 #: Not after a passive auxiliary ("he was told to leave") or a determiner ("the said
 #: contract", legal usage). "states" is left out: "member states." is a noun.
-_NOT_PASSIVE = r"(?<!was\s)(?<!were\s)(?<!been\s)(?<!being\s)(?<!the\s)(?<!of\s)(?<!is\s)(?<!to\s)"
-_NEUTRAL = _alt("said", "says", "say", "stated", "told", "tells", "added", "adds", "wrote", "writes",
+_NOT_PASSIVE = (r"(?<!was\s)(?<!were\s)(?<!been\s)(?<!being\s)(?<!the\s)(?<!of\s)(?<!is\s)(?<!to\s)"
+                # attribution-v2: "something to be said for", "unless otherwise stated",
+                # "the complaint nowhere alleges".
+                r"(?<!be\s)(?<!otherwise\s)(?<!nowhere\s)")
+#: attribution-v2: "said" after a preposition is the legal adjective ("in said County",
+#: "within and for said Court"), not a speech verb.
+_NOT_SAID_ADJ = (r"(?<!in\s)(?<!for\s)(?<!within\s)(?<!from\s)(?<!upon\s)(?<!under\s)(?<!by\s)"
+                 r"(?<!at\s)(?<!on\s)(?<!with\s)")
+_NEUTRAL = _alt(_NOT_SAID_ADJ + "said", "says", "say", "stated", "told", "tells", "added", "adds", "wrote", "writes",
                 "declared", "declares")
 _DISTANCING = _alt("claimed", "claims", "alleged", "alleges", "insisted", "insists", "maintained",
                    "maintains", "contended", "contends", "asserted", "asserts")
@@ -252,12 +266,17 @@ _ENDORSING = _alt("confirmed", "confirms", "revealed", "reveals", "acknowledged"
                   "admitted", "admits", "explained", "explains", r"pointed\s+out", r"points\s+out",
                   "showed", "shows")
 
+#: attribution-v2: a modal right before the verb is a possible statement, not one made
+#: ("nothing he could say").
+_ATTR = dict(modal_blocks=True)
+
 ATTRIBUTION = [
-    Pattern("attr-neutral", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL + r")" + _LOOSE, subtype="neutral"),
+    Pattern("attr-neutral", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL + r")" + _LOOSE, subtype="neutral",
+            **_ATTR),
     Pattern("attr-distancing", _NOT_PASSIVE + r"(?P<m>" + _DISTANCING + r")" + _STRICT,
-            subtype="distancing"),
+            subtype="distancing", **_ATTR),
     Pattern("attr-endorsing", _NOT_PASSIVE + r"(?P<m>" + _ENDORSING + r")" + _STRICT,
-            subtype="endorsing"),
+            subtype="endorsing", **_ATTR),
     # '"…," the minister claimed' / '"…," claimed the minister'
     Pattern("attr-distancing-inv", _CLOSE_Q + r"(?P<m>" + _DISTANCING + r")",
             subtype="distancing", lead_boundary=False),

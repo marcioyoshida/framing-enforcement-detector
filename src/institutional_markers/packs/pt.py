@@ -21,9 +21,14 @@ DEFINING = frozenset({"estabelece", "estabelecia", "preve", "previa", "dispoe", 
 #: "por/pelo/pela" names an agent unless it is a manner, cause, rate or vote.
 _AGENT = re.compile(
     r"(?<!\w)(?:por|pelo|pela|pelos|pelas)\s+(?!(?:volta|causa|meio|cento|dia|ano|mes|semana|hora|vez"
-    r"|vezes|isso|isto|tanto|fim|conta|ora|enquanto|unanimidade|menos|primeira|segunda|ultima|unica"
+    r"|vezes|isso|isto|tanto|fim|conta|ora|enquanto|unanimidade|menos"
+    r"|(?:primeira|segunda|terceira|ultima|unica)\s+vez"
     r"|dias|meses|anos|semanas|horas|minutos|decadas|tempo|muito|pouco|completo"
-    r"|motivo|razao|razoes|forca|falta|excesso|engano|equivoco|lei|decreto)\b|\d)")
+    r"|motivo|razao|razoes|forca|falta|excesso|engano|equivoco|lei|decreto"
+    # agentless-v2: a duration or an amount is not an agent ("pelo prazo de um ano",
+    # "por três anos", "pelo valor de").
+    r"|prazo|periodo|valor|montante|total|mais|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito"
+    r"|nove|dez|doze|quinze|vinte|trinta|cem|mil)\b|\d)")
 
 
 def has_agent(after: str) -> bool:
@@ -185,7 +190,9 @@ AGENTLESS = [
     _passive("pas-harm", "harm", _pp(
         "mort", "ferid", "balead", "agredid", "atacad", "assassinad", "detid", "pres", "encarcerad",
         "deportad", "despejad", "torturad", "sequestrad", "espancad", "desalojad", "esfaquead",
-        "atingid", "alvejad")),
+        # agentless-v2: "atingid" dropped; in official text it means "reached" ("a meta foi
+        # atingida") far more often than "hit".
+        "alvejad")),
     _passive("pas-sanction", "sanction", _pp(
         "multad", "sancionad", "punid", "suspens", "banid", "bloquead", "advertid", "penalizad",
         "censurad", "condenad", "inabilitad", "declarad[oa]s?\\s+inidone")),
@@ -206,7 +213,12 @@ AGENTLESS = [
 # --- hedge -------------------------------------------------------------------------------
 _HEDGE = dict(negatable=False)
 #: A true hypothetical ("se tivesse chovido, teria cancelado") is not a reporting conditional.
-_HYPOTHETICAL = frozenset({"tivesse", "tivessem", "houvesse", "houvessem", "fosse", "fossem", "caso"})
+#: hedge-v2: "caso" left out; across a wrapped line it is mostly "no caso" ("in this case"),
+#: and a conditional "caso" carries one of these subjunctives anyway.
+_HYPOTHETICAL = frozenset({"tivesse", "tivessem", "houvesse", "houvessem", "fosse", "fossem",
+                           "estivesse", "estivessem"})
+#: hedge-v2: the condition can also follow ("teria sido escolhida, caso … estivesse").
+_HYPOTHETICAL_AFTER = _HYPOTHETICAL
 _PARTICIPLE = r"\w+(?:ad[oa]s?|id[oa]s?|it[oa]s?|ost[oa]s?|ert[oa]s?|ist[oa]s?|eit[oa]s?)"
 _DET = _alt("o", "a", "os", "as", "um", "uma", "uns", "umas", "do", "da", "dos", "das", "no", "na",
             "nos", "nas", "pelo", "pela", "pelos", "pelas", "ao", "aos", "e", "de", "seu", "sua", "seus",
@@ -225,9 +237,11 @@ HEDGE = [
             subtype="label", **_HEDGE),
     Pattern("hedge-teria",
             r"teriam?\s+(?:\w+mente\s+)?(?:sido\s+)?" + _PARTICIPLE,
-            subtype="report_conditional", blocked_by=_HYPOTHETICAL, **_HEDGE),
+            subtype="report_conditional", blocked_by=_HYPOTHETICAL, blocked_after=_HYPOTHETICAL_AFTER,
+            **_HEDGE),
     Pattern("hedge-estaria", r"estariam?\s+(?:\w+mente\s+)?\w+ndo",
-            subtype="report_conditional", blocked_by=_HYPOTHETICAL, **_HEDGE),
+            subtype="report_conditional", blocked_by=_HYPOTHETICAL, blocked_after=_HYPOTHETICAL_AFTER,
+            **_HEDGE),
 ]
 
 # --- attribution_verb ----------------------------------------------------------------------
@@ -253,10 +267,13 @@ _ENDORSING = _alt("confirmou", "confirmaram", "confirma", "confirmam", "revelou"
                   "apontou", "apontaram", "aponta", "apontam", "mostrou", "mostraram", "mostra", "mostram")
 
 ATTRIBUTION = [
-    Pattern("attr-neutral", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL + r")" + _LOOSE, subtype="neutral"),
+    # attribution-v2: "no que diz respeito" ("regarding") is not speech.
+    Pattern("attr-neutral", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL + r")(?!\s+respeito\b)" + _LOOSE,
+            subtype="neutral"),
     Pattern("attr-distancing", _NOT_PASSIVE + r"(?P<m>" + _DISTANCING + r")" + _STRICT,
             subtype="distancing"),
-    Pattern("attr-endorsing", _NOT_PASSIVE + r"(?P<m>" + _ENDORSING + r")" + _STRICT,
+    # attribution-v2: a reflexive "se mostra / mostrou-se" means "proves to be", not speech.
+    Pattern("attr-endorsing", _NOT_PASSIVE + r"(?<!\bse\s)(?<!\bse\s\s)(?P<m>" + _ENDORSING + r")(?!-se\b)" + _STRICT,
             subtype="endorsing"),
     Pattern("attr-distancing-inv", _CLOSE_Q + r"(?P<m>" + _DISTANCING + r")",
             subtype="distancing", lead_boundary=False),

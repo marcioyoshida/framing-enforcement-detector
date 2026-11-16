@@ -4,7 +4,42 @@ Package versions follow semver (ADR 0001 §7): patch = docs/tests only; minor = 
 or a marker version bump; major = an interface change. **Every marker version change is
 listed here.** A consumer that upgrades re-measures the markers whose version changed.
 
-## Unreleased (docs only)
+## 0.4.0 — 2026-11-16
+
+- `agentless_passive` **agentless-v1 → agentless-v2**, `hedge` **hedge-v1 → hedge-v2**,
+  `attribution_verb` **attribution-v1 → attribution-v2**. The institutional markers
+  (`exception_clause`, `burden`, `discretion`) are unchanged: same versions, same output.
+  Consumers re-measure the three comparison markers.
+  - Why: a consumer's measurement of v1 on real legal and audit text (below, and
+    `eval/README.md`): attribution en 0.69, passive pt 0.75.
+  - **Comparison markers read across PDF line wraps.** A single line break no longer ends a
+    clause for them (a blank line still does), so the agent ("foi\ntotalmente ignorada pela
+    auditoria"), a negator ("não\nforam removidos") and a hypothetical seen across a wrap now
+    count. Institutional markers keep the hard rule their versions were measured with.
+  - **Quotations, comparison markers only:** double quotes are paired by direction (a mark
+    before a word opens, after a word closes), so one stray mark no longer flips every later
+    pair; a single quote before "..." opens a quotation ("('... revogada cautelar").
+  - `agentless_passive`: pt "atingido" dropped (in official text it means "reached");
+    a duration or an amount after "por/pelo" is not an agent ("pelo prazo de um ano", "por
+    três anos"), but "pela segunda auditoria" now is ("pela segunda vez" still is not); en
+    present perfect dropped after a future or a time/condition word in its clause ("I will
+    confirm that it has been destroyed", "after it has been removed").
+  - `hedge`: pt reporting conditional dropped when a subjunctive condition follows it
+    ("teria sido escolhida, caso … estivesse"); "caso" alone no longer counts as a condition
+    ("no caso sob análise").
+  - `attribution_verb`: pt "diz respeito" and reflexive "se mostra / mostrou-se" are not
+    speech; en "said" after a preposition is the legal adjective ("within and for said
+    County"), and "to be said", "otherwise stated", "nowhere alleges" and a modal before the
+    verb ("could say") are dropped.
+  - Measured by the same consumer on FRESH text (never labelled for these markers; six new
+    blind labellers, rulings fixed before labelling, 35 hits per cell, default mode): en
+    court opinions and agency rules, pt audit-court decisions. **passive 1.00 / 0.94, hedge
+    0.94 / 0.89, attribution 0.91 / 0.94.**
+  - Library reference set (`eval/heldout2.jsonl`): identical to v0.3.0 (its invented texts
+    have no line wraps).
+
+### Docs (between 0.3.0 and 0.4.0)
+
 
 - `burden`: a consumer measured **burden-v3** on fresh Portuguese audit-court decisions
   (special audits, blind, every hit): **0.842 (32 of 38)**, under its 0.85 bar, and stopped

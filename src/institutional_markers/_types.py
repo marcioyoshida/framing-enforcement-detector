@@ -54,6 +54,9 @@ class Pattern:
     #: Words that drop the hit when they occur in the clause before the span (a reporting
     #: conditional after "if it had…" is a hypothetical, not a hedge).
     blocked_by: frozenset[str] = frozenset()
+    #: Words that drop the hit when they occur in the clause right after the span (a
+    #: reporting conditional followed by "caso … estivesse" is a hypothetical).
+    blocked_after: frozenset[str] = frozenset()
     #: The wording itself only defines a rule ("é dispensável a licitação" = may be
     #: dispensed with): always invoked=False.
     always_defined: bool = False
