@@ -105,3 +105,21 @@ precision for this marker.**
 Portuguese-only change (a burden rule reported rather than stated is dropped). The library
 reference set does not exercise it: every row is identical to v0.2.0
 (`heldout2_result_v0.3.0.json`).
+
+## Consumer measurements of `burden` on real documents
+
+Reported by a consumer, blind, every sampled hit, a different labeller per version on
+documents no earlier labeller saw. These are that consumer's numbers on that corpus, not
+precision anyone else may use; they are recorded because they show how far invented-text
+results can sit from real ones.
+
+| Version | Corpus | en | pt | Overall |
+|---|---|---|---|---|
+| burden-v1 | agency rules, court opinions, audit-court decisions | 0.45 | 0.31 | 0.39 (30 of 77) |
+| burden-v2 | fresh court opinions, audit-court decisions | 0.39 (12 of 31) | 0.79 (23 of 29) | 0.58 (35 of 60) |
+| burden-v3 | fresh audit-court special audits, 29 decisions | — | 0.842 (32 of 38) | — |
+
+The consumer stopped at v3 (bar 0.85). English court text states burdens as doctrine far
+more than it applies them, and wording does not tell the two apart. In Portuguese, about a
+third of the correct hits hinge on the stock-line reading in `rubrics/burden.md`; under the
+strict reading v3 is about 0.55.

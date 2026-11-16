@@ -4,6 +4,16 @@ Package versions follow semver (ADR 0001 §7): patch = docs/tests only; minor = 
 or a marker version bump; major = an interface change. **Every marker version change is
 listed here.** A consumer that upgrades re-measures the markers whose version changed.
 
+## Unreleased (docs only)
+
+- `burden`: a consumer measured **burden-v3** on fresh Portuguese audit-court decisions
+  (special audits, blind, every hit): **0.842 (32 of 38)**, under its 0.85 bar, and stopped
+  using the marker. About a third of the correct hits were a stock "cabe ao gestor
+  comprovar …" line in reply to a party, in a headnote or adopted from another body's
+  opinion; whether that counts as *applied* is a rubric choice (see `rubrics/burden.md`).
+  Read strictly, precision is about 0.55. The remaining misses were quoted earlier
+  decisions and general doctrine. No code change; see `eval/README.md`.
+
 ## 0.3.0 — 2026-11-15
 
 - `burden` **burden-v2 → burden-v3** (Portuguese rules only; English behaves as in v2, but
