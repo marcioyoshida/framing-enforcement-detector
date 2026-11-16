@@ -4,6 +4,44 @@ Package versions follow semver (ADR 0001 §7): patch = docs/tests only; minor = 
 or a marker version bump; major = an interface change. **Every marker version change is
 listed here.** A consumer that upgrades re-measures the markers whose version changed.
 
+## 0.5.0 — 2026-11-16
+
+- `agentless_passive` **agentless-v2 → v3**, `hedge` **hedge-v2 → v3**, `attribution_verb`
+  **attribution-v2 → v3**. The institutional markers are unchanged (same versions, same output).
+  Consumers re-measure the three comparison markers.
+  - **Engine, comparison markers only.** An emphasis note ("(grifos nossos)", "(emphasis
+    added)") closes a transcribed passage that has no quotation marks. The passage runs from the
+    last colon before the note, inside its paragraph; with no colon, nothing is marked. A single
+    quote before "(..)" opens a quotation. "nowhere" negates.
+  - **Fix that touches every attribution hit since v1.** The guards on the word before a verb
+    had no word boundary, so "Chris said" and "Davis said" were dropped ("is" inside the name),
+    and "company claims" was dropped by "any".
+  - `agentless_passive`: pt "teria sido" is no longer a passive auxiliary (the rubric excludes
+    conditionals; `hedge` reads it). "pela Lei 12.651" names an agent, while "por lei" stays a
+    manner. A bidder "inabilitada" is `removal`, and "inabilitado para o exercício de cargo" is
+    `sanction`.
+  - `hedge`: en "presumably" dropped (the author's own inference; the rubric never listed it).
+    pt "teria sido, ou não," and "saber se … teria" are indirect questions.
+  - `attribution_verb`:
+    - en "claims" has its own pattern: not after a determiner or "other/no/and", and its that-clause
+      must not open a relative clause ("claims that were dismissed").
+    - "says nothing / little", "all told", "stated simply" are not speech.
+    - "told / tells / added / adds" need a that-clause, a colon or a quotation.
+    - A text or evidence as the subject anywhere in the clause before blocks endorsing verbs and
+      "tells/told" (en) and pt endorsing verbs ("the statute tells us", "vários documentos
+      mostram"). See the new hard cases in `rubrics/attribution_verb.md`.
+    - pt "aponta para a …" is not speech.
+  - **Measured fresh, blind, rulings fixed before labelling** (`eval/README.md`):
+    - **passive** en 0.97, pt 0.97;
+    - **hedge** en 1.00 (33 of 33, the v3 subset of a fresh sample), pt 0.94 and 0.89 (two rounds);
+    - **attribution** pt 0.89 (round 1) and 0.77 (round 2, a stricter reading of documents as
+      speakers), **en 0.74 in two separate rounds on court opinions: under the bar.** Do not rely
+      on `attribution_verb` in English court opinions. On English news headlines a consumer
+      measured 0.90.
+  - Library reference set (`eval/heldout2.jsonl`): precision 0.986 → 0.993, recall 0.771 →
+    0.750. English attribution recall falls 0.78 → 0.67, the cost of the stricter told/added
+    rule, and one "presumably" hedge is dropped.
+
 ## 0.4.0 — 2026-11-16
 
 - `agentless_passive` **agentless-v1 → agentless-v2**, `hedge` **hedge-v1 → hedge-v2**,

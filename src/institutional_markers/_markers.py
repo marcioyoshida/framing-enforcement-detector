@@ -9,10 +9,10 @@ MARKERS: dict[str, MarkerSpec] = {m.name: m for m in (
     MarkerSpec("burden", "burden-v3", "institutional", ("burden", "presumption")),
     MarkerSpec("discretion", "discretion-v1", "institutional", ("reserved", "review_closed")),
     # Comparison building blocks: single-passage features a consumer may pair and compare.
-    MarkerSpec("agentless_passive", "agentless-v2", "comparison",
+    MarkerSpec("agentless_passive", "agentless-v3", "comparison",
                ("harm", "sanction", "removal", "error")),
-    MarkerSpec("hedge", "hedge-v2", "comparison", ("adverb", "label", "report_conditional")),
-    MarkerSpec("attribution_verb", "attribution-v2", "comparison",
+    MarkerSpec("hedge", "hedge-v3", "comparison", ("adverb", "label", "report_conditional")),
+    MarkerSpec("attribution_verb", "attribution-v3", "comparison",
                ("neutral", "distancing", "endorsing")),
 )}
 

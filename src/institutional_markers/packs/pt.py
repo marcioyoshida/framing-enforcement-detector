@@ -10,6 +10,7 @@ LANG = "pt"
 
 #: "no" is not here: in Portuguese it is "em + o".
 NEGATORS = frozenset({"nao", "nunca", "jamais", "nem", "nenhum", "nenhuma", "ninguem", "tampouco"})
+NEGATORS_COMPARISON = NEGATORS
 MODALS = frozenset({
     "pode", "podem", "podera", "poderao", "poderia", "poderiam", "possa", "possam", "podendo",
     "deve", "devem", "devera", "deverao", "deveria", "deveriam", "devendo",
@@ -19,16 +20,24 @@ DEFINING = frozenset({"estabelece", "estabelecia", "preve", "previa", "dispoe", 
                       "preceitua", "determina"})
 
 #: "por/pelo/pela" names an agent unless it is a manner, cause, rate or vote.
+#: agentless-v3: "por lei / por decreto" (no article) is a manner, but "pela Lei 12.651"
+#: names the law that did it, so lei/decreto are excluded only after a bare "por".
 _AGENT = re.compile(
-    r"(?<!\w)(?:por|pelo|pela|pelos|pelas)\s+(?!(?:volta|causa|meio|cento|dia|ano|mes|semana|hora|vez"
+    r"(?<!\w)(?:(?:pelo|pela|pelos|pelas)\s+|por\s+(?!(?:lei|decreto)\b))"
+    r"(?!(?:volta|causa|meio|cento|dia|ano|mes|semana|hora|vez"
     r"|vezes|isso|isto|tanto|fim|conta|ora|enquanto|unanimidade|menos"
     r"|(?:primeira|segunda|terceira|ultima|unica)\s+vez"
     r"|dias|meses|anos|semanas|horas|minutos|decadas|tempo|muito|pouco|completo"
-    r"|motivo|razao|razoes|forca|falta|excesso|engano|equivoco|lei|decreto"
+    r"|motivo|razao|razoes|forca|falta|excesso|engano|equivoco"
     # agentless-v2: a duration or an amount is not an agent ("pelo prazo de um ano",
     # "por três anos", "pelo valor de").
     r"|prazo|periodo|valor|montante|total|mais|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito"
     r"|nove|dez|doze|quinze|vinte|trinta|cem|mil)\b|\d)")
+
+
+#: Comparison markers (v3): an emphasis note closing a transcribed passage ("(grifos
+#: nossos)", "(grifo do peticionante)", "(o grifo não consta do original)").
+EMPHASIS_NOTE = re.compile(r"\((?:o\s+|os\s+)?(?:grifos?|destaques?|negritos?|sublinhados?)\b[^)]{0,60}\)")
 
 
 def has_agent(after: str) -> bool:
@@ -177,7 +186,9 @@ DISCRETION = [
 ]
 
 # --- agentless_passive -------------------------------------------------------------------
-_AUX = r"(?:foi|foram|tinha\s+sido|tinham\s+sido|havia\s+sido|haviam\s+sido|teria\s+sido|teriam\s+sido)"
+#: agentless-v3: "teria sido" left out; a conditional passive is excluded by the rubric (and
+#: is a reporting conditional, which `hedge` reads).
+_AUX = r"(?:foi|foram|tinha\s+sido|tinham\s+sido|havia\s+sido|haviam\s+sido)"
 _ADV = r"(?:\s+\w+mente)?"
 _PASSIVE = dict(agent_check=True, modal_blocks=True)
 
@@ -195,11 +206,14 @@ AGENTLESS = [
         "alvejad")),
     _passive("pas-sanction", "sanction", _pp(
         "multad", "sancionad", "punid", "suspens", "banid", "bloquead", "advertid", "penalizad",
-        "censurad", "condenad", "inabilitad", "declarad[oa]s?\\s+inidone")),
+        "censurad", "condenad", "declarad[oa]s?\\s+inidone",
+        # agentless-v3: "inabilitado para o exercício de cargo" is a sanction; a bidder
+        # "inabilitada" in a procurement is removed from it (below).
+        r"inabilitad(?=[oa]s?\s+para\s+(?:o\s+)?(?:exercicio|exercer|cargo|funcao))")),
     _passive("pas-removal", "removal", _pp(
         "removid", "excluid", "apagad", "demitid", "exonerad", "afastad", "retirad", "revogad",
         "cancelad", "rejeitad", "indeferid", "destruid", "apreendid", "confiscad", "negad", "derrubad",
-        "encerrad", "cassad", "vetad", "expuls", "suprimid", "tarjad")),
+        "encerrad", "cassad", "vetad", "expuls", "suprimid", "tarjad", "inabilitad")),
     _passive("pas-error", "error", _pp(
         "ignorad", "negligenciad", "perdid", "extraviad", "desconsiderad", "omitid")),
     Pattern("pas-cometidos",
@@ -219,6 +233,8 @@ _HYPOTHETICAL = frozenset({"tivesse", "tivessem", "houvesse", "houvessem", "foss
                            "estivesse", "estivessem"})
 #: hedge-v2: the condition can also follow ("teria sido escolhida, caso … estivesse").
 _HYPOTHETICAL_AFTER = _HYPOTHETICAL
+#: hedge-v3: an indirect question ("cabe saber se a falha teria prejudicado …").
+_INDIRECT_Q = frozenset({"saber", "indagar", "perguntar", "questionar", "averiguar"})
 _PARTICIPLE = r"\w+(?:ad[oa]s?|id[oa]s?|it[oa]s?|ost[oa]s?|ert[oa]s?|ist[oa]s?|eit[oa]s?)"
 _DET = _alt("o", "a", "os", "as", "um", "uma", "uns", "umas", "do", "da", "dos", "das", "no", "na",
             "nos", "nas", "pelo", "pela", "pelos", "pelas", "ao", "aos", "e", "de", "seu", "sua", "seus",
@@ -236,9 +252,10 @@ HEDGE = [
     Pattern("hedge-segundo-relatos", r"(?:segundo|conforme|de\s+acordo\s+com)\s+(?:relatos|rumores)",
             subtype="label", **_HEDGE),
     Pattern("hedge-teria",
-            r"teriam?\s+(?:\w+mente\s+)?(?:sido\s+)?" + _PARTICIPLE,
-            subtype="report_conditional", blocked_by=_HYPOTHETICAL, blocked_after=_HYPOTHETICAL_AFTER,
-            **_HEDGE),
+            # hedge-v3: "se … teria sido, ou não, …" is an indirect question.
+            r"teriam?\s+(?:\w+mente\s+)?(?:sido\s+)?" + _PARTICIPLE + r"(?!\s*,?\s*ou\s+nao\b)",
+            subtype="report_conditional", blocked_by=_HYPOTHETICAL | _INDIRECT_Q,
+            blocked_after=_HYPOTHETICAL_AFTER, **_HEDGE),
     Pattern("hedge-estaria", r"estariam?\s+(?:\w+mente\s+)?\w+ndo",
             subtype="report_conditional", blocked_by=_HYPOTHETICAL, blocked_after=_HYPOTHETICAL_AFTER,
             **_HEDGE),
@@ -251,7 +268,8 @@ _STRICT = r"(?=(?:[\s,]+(?!que\b)\w+){0,6}?[\s,]+que\b|\s*:|\s*[\"'])"
 #: Right after a closing quote: '"…", admitiu o diretor' / "'…', sustentou a defesa".
 _CLOSE_Q = r"(?:[,.!?]\s*[\"']|[\"']\s*,)\s*(?:\w+\s+){0,3}?"
 #: Not after a passive auxiliary ("foi dito", "foi informado").
-_NOT_PASSIVE = r"(?<!foi\s)(?<!foram\s)(?<!sido\s)(?<!ser\s)"
+#: attribution-v3: word boundaries on every guard.
+_NOT_PASSIVE = r"(?<!\bfoi\s)(?<!\bforam\s)(?<!\bsido\s)(?<!\bser\s)"
 
 _NEUTRAL = _alt("disse", "disseram", "diz", "dizem", "afirmou", "afirmaram", "afirma", "afirmam",
                 "declarou", "declararam", "declara", "declaram", "informou", "informaram", "informa",
@@ -261,6 +279,14 @@ _DISTANCING = _alt("alegou", "alegaram", "alega", "alegam", "sustentou", "susten
                    "sustentam", "insistiu", "insistiram", "insiste", "insistem", "argumentou",
                    "argumentaram", "argumenta", "argumentam", "garantiu", "garantiram", "garante",
                    "garantem")
+#: attribution-v3: a text, evidence or a practice as the subject is not a speaker ("vários
+#: documentos, contrariamente, mostram", "esta prática … revela", "o dispositivo diz").
+#: Checked over the clause before the verb.
+_TEXT_SUBJECT_PT = frozenset({
+    "lei", "norma", "normas", "dispositivo", "artigo", "texto", "regulamento", "resolucao",
+    "documentos", "documento", "elementos", "elemento", "dados", "provas", "prova", "autos", "fatos",
+    "pratica", "praticas", "analise", "conduta", "registros", "evidencias", "indicios", "historico",
+    "tabela", "quadro", "manutencao"})
 _ENDORSING = _alt("confirmou", "confirmaram", "confirma", "confirmam", "revelou", "revelaram", "revela",
                   "revelam", "reconheceu", "reconheceram", "reconhece", "reconhecem", "admitiu",
                   "admitiram", "admite", "admitem", "explicou", "explicaram", "explica", "explicam",
@@ -273,8 +299,10 @@ ATTRIBUTION = [
     Pattern("attr-distancing", _NOT_PASSIVE + r"(?P<m>" + _DISTANCING + r")" + _STRICT,
             subtype="distancing"),
     # attribution-v2: a reflexive "se mostra / mostrou-se" means "proves to be", not speech.
-    Pattern("attr-endorsing", _NOT_PASSIVE + r"(?<!\bse\s)(?<!\bse\s\s)(?P<m>" + _ENDORSING + r")(?!-se\b)" + _STRICT,
-            subtype="endorsing"),
+    # attribution-v3: "aponta para a …" means "points to" (evidence), not speech.
+    Pattern("attr-endorsing", _NOT_PASSIVE + r"(?<!\bse\s)(?<!\bse\s\s)(?P<m>" + _ENDORSING + r")(?!-se\b)"
+            + r"(?!\s+para\s+(?:a|o|as|os)\b)" + _STRICT,
+            subtype="endorsing", blocked_by=_TEXT_SUBJECT_PT),
     Pattern("attr-distancing-inv", _CLOSE_Q + r"(?P<m>" + _DISTANCING + r")",
             subtype="distancing", lead_boundary=False),
     Pattern("attr-endorsing-inv", _CLOSE_Q + r"(?P<m>" + _ENDORSING + r")",

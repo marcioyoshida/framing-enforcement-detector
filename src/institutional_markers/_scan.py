@@ -4,7 +4,7 @@ from __future__ import annotations
 from types import ModuleType
 from typing import Iterable, Sequence
 
-from ._context import Clauses, inside, quoted_intervals, tokens, window_start
+from ._context import Clauses, emphasis_intervals, inside, quoted_intervals, tokens, window_start
 from ._fold import fold
 from ._markers import MARKERS
 from ._types import Hit, Pattern
@@ -48,7 +48,9 @@ def scan(
     # measured with; comparison markers read across PDF line wraps (see _context).
     ctx = {
         "institutional": (Clauses(text), quoted_intervals(folded)),
-        "comparison": (Clauses(text, soft_wrap=True), quoted_intervals(folded, elided_open=True)),
+        "comparison": (Clauses(text, soft_wrap=True),
+                       sorted(quoted_intervals(folded, elided_open=True)
+                              + emphasis_intervals(folded, pack.EMPHASIS_NOTE))),
     }
     excluded = [tuple(s) for s in exclude]
 
@@ -73,7 +75,8 @@ def _apply(p: Pattern, name: str, text: str, folded: str, clauses: Clauses,
         left = min(start, m.start())
         before = tokens(folded[window_start(c_start, left, quotes):left])
 
-        if p.negatable and _negated(before[-(NEGATION_WINDOW + 1):], pack.NEGATORS):
+        negators = pack.NEGATORS if MARKERS[name].group == "institutional" else pack.NEGATORS_COMPARISON
+        if p.negatable and _negated(before[-(NEGATION_WINDOW + 1):], negators):
             continue
         if p.modal_blocks and before and before[-1] in pack.MODALS:
             continue

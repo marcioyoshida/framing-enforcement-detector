@@ -12,6 +12,8 @@ NEGATORS = frozenset({
     "didn", "doesn", "don", "wasn", "weren", "isn", "aren", "hasn", "haven", "hadn",
     "wouldn", "couldn", "shouldn", "cannot",
 })
+#: Comparison markers (v3) also read "nowhere" ("Nowhere did it say …").
+NEGATORS_COMPARISON = NEGATORS | {"nowhere"}
 MODALS = frozenset({"may", "might", "can", "could", "shall", "should", "would", "must", "unless"})
 #: Drafting verbs that report a general rule ("the regulation provides that …"): a marker
 #: after one of these in its clause only defines.
@@ -23,6 +25,10 @@ _AGENT = re.compile(
     r"|thursday|friday|saturday|sunday|january|february|march|april|may|june|july|august"
     r"|september|october|november|december|noon|midnight|law|statute|regulation|mistake"
     r"|accident|default|chance|hand|email|mail|phone|order\s+of\s+the\s+court)\b|\d)")
+
+
+#: Comparison markers (v3): an emphasis note closing a transcribed passage.
+EMPHASIS_NOTE = re.compile(r"\((?:emphasis|emphases)\s+(?:added|supplied|in\s+(?:the\s+)?original|omitted|deleted)[^)]{0,40}\)")
 
 
 def has_agent(after: str) -> bool:
@@ -223,8 +229,9 @@ _DET = _alt("the", "a", "an", "his", "her", "their", "its", "this", "that", "the
             "on", "in", "with", "over", "about", "and", "or", "any", "two", "three", "several", "an",
             "into", "to", "from", "after", "against")
 HEDGE = [
-    Pattern("hedge-adverb", _alt("reportedly", "allegedly", "purportedly", "supposedly", "ostensibly",
-                                 "presumably"),
+    # hedge-v3: "presumably" dropped; it marks the author's own inference, not a report
+    # (the rubric's English list never had it).
+    Pattern("hedge-adverb", _alt("reportedly", "allegedly", "purportedly", "supposedly", "ostensibly"),
             subtype="adverb", **_HEDGE),
     Pattern("hedge-label", _alt("so-called", r"so\s+called", "self-styled", "self-proclaimed", "self-described",
                                 "unverified", "unconfirmed", "unsubstantiated"),
@@ -250,42 +257,78 @@ _CLOSE_Q = r"(?:[,.!?]\s*[\"']|[\"']\s*,)\s*(?:[\w'-]+\s+){0,3}?"
 
 #: Not after a passive auxiliary ("he was told to leave") or a determiner ("the said
 #: contract", legal usage). "states" is left out: "member states." is a noun.
-_NOT_PASSIVE = (r"(?<!was\s)(?<!were\s)(?<!been\s)(?<!being\s)(?<!the\s)(?<!of\s)(?<!is\s)(?<!to\s)"
+_NOT_PASSIVE = (r"(?<!\bwas\s)(?<!\bwere\s)(?<!\bbeen\s)(?<!\bbeing\s)(?<!\bthe\s)(?<!\bof\s)(?<!\bis\s)(?<!\bto\s)"
                 # attribution-v2: "something to be said for", "unless otherwise stated",
                 # "the complaint nowhere alleges".
-                r"(?<!be\s)(?<!otherwise\s)(?<!nowhere\s)")
+                r"(?<!\bbe\s)(?<!\botherwise\s)(?<!\bnowhere\s)")
+#: attribution-v3: every guard above needs a word boundary; without it "Chris said" and
+#: "Davis said" were dropped ("is" inside the name) since v1.
 #: attribution-v2: "said" after a preposition is the legal adjective ("in said County",
 #: "within and for said Court"), not a speech verb.
-_NOT_SAID_ADJ = (r"(?<!in\s)(?<!for\s)(?<!within\s)(?<!from\s)(?<!upon\s)(?<!under\s)(?<!by\s)"
-                 r"(?<!at\s)(?<!on\s)(?<!with\s)")
-_NEUTRAL = _alt(_NOT_SAID_ADJ + "said", "says", "say", "stated", "told", "tells", "added", "adds", "wrote", "writes",
-                "declared", "declares")
-_DISTANCING = _alt("claimed", "claims", "alleged", "alleges", "insisted", "insists", "maintained",
-                   "maintains", "contended", "contends", "asserted", "asserts")
+_NOT_SAID_ADJ = (r"(?<!\bin\s)(?<!\bfor\s)(?<!\bwithin\s)(?<!\bfrom\s)(?<!\bupon\s)(?<!\bunder\s)(?<!\bby\s)"
+                 r"(?<!\bat\s)(?<!\bon\s)(?<!\bwith\s)")
+#: attribution-v3: "told", "tells", "added" and "adds" also take a plain object ("adds the
+#: option", "tells us nothing"), so they need a that-clause, a colon or a quotation (strict).
+_NEUTRAL = _alt(_NOT_SAID_ADJ + "said", "says", "say", "stated", "wrote", "writes", "declared", "declares")
+_NEUTRAL_STRICT = _alt(r"(?<!\ball\s)told", "tells", "added", "adds")
+#: attribution-v3: a manner phrase ("stated simply", "put differently") is not a statement.
+_NOT_MANNER = r"(?!\s+(?:simply|differently|otherwise|briefly|generally|plainly|broadly|another\s+way|more\s+\w+ly)\b)"
+#: attribution-v3: a text or evidence as the subject is not a speaker ("the statute tells
+#: us", "a comparison with other statutes shows that", "the record confirms"). Checked over
+#: the clause before the verb, for the verbs that take such subjects.
+_TEXT_SUBJECT_EN = frozenset({
+    "statute", "statutes", "clause", "phrase", "text", "rule", "rules", "provision", "provisions",
+    "law", "section", "constitution", "amendment", "regulation", "regulations", "language", "word",
+    "words", "scheme", "canon", "definition", "structure", "history", "record", "records",
+    "evidence", "comparison", "data", "document", "documents", "study", "studies", "results",
+    "testimony", "precedent", "precedents", "context", "experience"})
+_DISTANCING_VERBS = ("claimed", "alleged", "alleges", "insisted", "insists", "maintained",
+                     "maintains", "contended", "contends", "asserted", "asserts")
+#: attribution-v3: "claims" is far more often the plural noun ("other claims that have
+#: nothing to do with…", "sex-discrimination claims"); it gets its own, stricter pattern.
+_DISTANCING = _alt(*_DISTANCING_VERBS)
+#: After a quotation or a comma the verb reading is safe, so "claims" stays there.
+_DISTANCING_INV = _alt("claims", *_DISTANCING_VERBS)
+_NOUN_BEFORE = "".join(rf"(?<!\b{w}\s)" for w in (
+    "the", "these", "those", "their", "his", "her", "its", "our", "your", "such", "any", "all",
+    "both", "other", "and", "or", "of", "no", "two", "new", "similar", "related", "remaining",
+    "state", "federal", "these", "whose", "many", "several", "some", "those", "pending"))
+#: A that-clause opening a relative clause ("claims that were dismissed") is not speech.
+_RELATIVE = (r"(?!\s+(?:\w+ly\s+)?(?:were|are|is|was|have|had|has|could|would|can|may|might|must"
+             r"|should|do|did|does|arise|arose|remain|involve|relate|concern|seek|sought)\b)")
+_CLAIMS_STRICT = r"(?=(?:[\s,]+(?!that\b)[\w']+){0,6}?[\s,]+that\b" + _RELATIVE + r"|\s*:)"
 _ENDORSING = _alt("confirmed", "confirms", "revealed", "reveals", "acknowledged", "acknowledges",
                   "admitted", "admits", "explained", "explains", r"pointed\s+out", r"points\s+out",
                   "showed", "shows")
 
 #: attribution-v2: a modal right before the verb is a possible statement, not one made
 #: ("nothing he could say").
-_ATTR = dict(modal_blocks=True)
+_ATTR = dict(modal_blocks=True,
+             # attribution-v3: "Nowhere did the statute say …" (the negator can sit far back).
+             blocked_by=frozenset({"nowhere"}))
+_TEXT_BLOCK = _TEXT_SUBJECT_EN | {"nowhere"}
 
 ATTRIBUTION = [
-    Pattern("attr-neutral", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL + r")" + _LOOSE, subtype="neutral",
-            **_ATTR),
+    # attribution-v3: "says nothing / little / no" introduces no statement.
+    Pattern("attr-neutral", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL + r")(?!\s+(?:nothing|little|no)\b)" + _NOT_MANNER
+            + _LOOSE, subtype="neutral", **_ATTR),
+    Pattern("attr-neutral-strict", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL_STRICT + r")(?!\s+(?:nothing|little|no)\b)"
+            + _STRICT, subtype="neutral", modal_blocks=True, blocked_by=_TEXT_BLOCK),
     Pattern("attr-distancing", _NOT_PASSIVE + r"(?P<m>" + _DISTANCING + r")" + _STRICT,
             subtype="distancing", **_ATTR),
+    Pattern("attr-distancing-claims", _NOT_PASSIVE + _NOUN_BEFORE + r"(?P<m>claims)" + _CLAIMS_STRICT,
+            subtype="distancing", **_ATTR),
     Pattern("attr-endorsing", _NOT_PASSIVE + r"(?P<m>" + _ENDORSING + r")" + _STRICT,
-            subtype="endorsing", **_ATTR),
+            subtype="endorsing", modal_blocks=True, blocked_by=_TEXT_BLOCK),
     # '"…," the minister claimed' / '"…," claimed the minister'
-    Pattern("attr-distancing-inv", _CLOSE_Q + r"(?P<m>" + _DISTANCING + r")",
+    Pattern("attr-distancing-inv", _CLOSE_Q + r"(?P<m>" + _DISTANCING_INV + r")",
             subtype="distancing", lead_boundary=False),
     Pattern("attr-endorsing-inv", _CLOSE_Q + r"(?P<m>" + _ENDORSING + r")",
             subtype="endorsing", lead_boundary=False),
     # "…, claimed the union." (no quotation marks): distancing only; endorsing verbs after a
     # comma are too often acts ("…, confirmed the sentence").
     Pattern("attr-distancing-comma",
-            r",\s*(?P<m>" + _DISTANCING + r")\s+(?:the\s+)?[\w'-]+(?:\s+[\w'-]+){0,4}\s*(?:[.;!?]|$)",
+            r",\s*(?P<m>" + _DISTANCING_INV + r")\s+(?:the\s+)?[\w'-]+(?:\s+[\w'-]+){0,4}\s*(?:[.;!?]|$)",
             subtype="distancing", lead_boundary=False),
 ]
 

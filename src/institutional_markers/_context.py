@@ -41,7 +41,7 @@ def tokens(folded: str) -> list[str]:
 #: An apostrophe between letters ("agency's", "d'água") is neither.
 _SQ_OPEN = re.compile(r"(?:^|(?<=[\s(\[{:—-]))'(?=[\w\"])")
 #: Comparison markers also open a quotation on an elided start: "('... revogada cautelar".
-_SQ_OPEN_ELIDED = re.compile(r"(?:^|(?<=[\s(\[{:—-]))'(?=[\w\"]|\.\.\.|…)")
+_SQ_OPEN_ELIDED = re.compile(r"(?:^|(?<=[\s(\[{:—-]))'(?=[\w\"]|\.\.\.|…|\()")
 _SQ_CLOSE = re.compile(r"(?<=[^\s'])'(?=[\s.,;:!?)\]}\"]|$)")
 
 
@@ -87,6 +87,33 @@ def _directional_double(folded: str) -> list[tuple[int, int]]:
             spans.append((open_at + 1, pos))
             open_at = None
     return spans
+
+
+#: A paragraph starts after a blank line or at a numbered line ("\n 132. Informa").
+_PARA = re.compile(r"\n[ \t]*\n|\n[ \t]*\d{1,3}(?:\.\d{1,3})*\.[ \t]+(?=\S)")
+#: A colon that introduces a transcription: followed by whitespace, a quote or a dash.
+_COLON = re.compile(r":(?=[\s\"'—-])")
+#: How far back an emphasis note may reach (characters).
+EMPHASIS_REACH = 800
+
+
+def emphasis_intervals(folded: str, note: re.Pattern[str]) -> list[tuple[int, int]]:
+    """Comparison markers (v3): an emphasis note ("(grifos nossos)", "(emphasis added)") ends
+    a transcribed passage that often carries no quotation marks. The passage is taken to
+    start after the last colon before the note, inside the note's paragraph (at most
+    EMPHASIS_REACH characters back): "O normativo explica: As informações … (grifo nosso)".
+    With no such colon nothing is marked, so the author's own words before a quotation
+    ("Jones told Dr. Potts that …") stay the author's."""
+    out = []
+    for m in note.finditer(folded):
+        q = m.start()
+        lo = max(0, q - EMPHASIS_REACH)
+        starts = [p.end() for p in _PARA.finditer(folded, lo, q)]
+        para = starts[-1] if starts else lo
+        colons = [c.end() for c in _COLON.finditer(folded, para, q)]
+        if colons:
+            out.append((colons[-1], q))
+    return out
 
 
 def window_start(c_start: int, start: int, quotes: list[tuple[int, int]]) -> int:

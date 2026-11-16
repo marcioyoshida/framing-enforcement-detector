@@ -200,7 +200,7 @@ cell). 35 hits per cell, at most 3 per document, default mode.
 The corpus differs from the v1 measurement (opinions, not filings), so read the two tables
 side by side, not as a controlled A/B.
 
-**Remaining errors** (v0.5 candidates, not fixed):
+**Remaining errors** (the v0.5 candidates; v0.5.0 fixed most of them, see v3 below):
 
 - **Quotation the library cannot see** (pt, 4): a party's petition or a newspaper excerpt
   reproduced as a block without marks ("grifo do peticionante").
@@ -212,4 +212,44 @@ side by side, not as a controlled A/B.
 - `agentless_passive`: pt "teria sido encerrada" (a conditional auxiliary, which the rubric
   excludes); "pela Lei 12.651" (an agent the duration/amount filter must not hide);
   "inabilitada" typed `sanction` where the labeller read removal.
+
+### v3 (library 0.5.0) on fresh documents
+
+Same consumer, 2026-11-16. Every cell used new blind labellers, documents no earlier
+comparison labeller saw, and rulings written before labelling; 34–35 hits per cell, at most 3
+per document. **en**: Supreme Court opinions (mostly the 2024 term), a few appeals-court
+opinions and agency rules. **pt**: audit-court decisions.
+
+| Marker | Version | en | pt |
+|---|---|---|---|
+| agentless_passive | agentless-v3 | 0.97 (33 of 34) | 0.97 (34 of 35) |
+| hedge | hedge-v3 | 1.00 (33 of 33)* | 0.94 (33 of 35)*, 0.89 (31 of 35) |
+| attribution_verb | attribution-v3 | **0.74 (26 of 35), twice** | 0.89 (31 of 35)*, 0.77 (27 of 35) |
+
+\* Round 1. These fixes were then made from that round's errors, and v3's later changes to
+these markers only remove hits, so the figure is the v3 subset of that fresh sample. The
+second figure is a second fresh round.
+
+**English attribution in court opinions does not reach the bar.** Two fresh rounds gave 0.74
+each, and each round's misses were new forms:
+- verb senses that are not speech: "confirms that the preconditions are met" (verifies),
+  "would have said so", "a conclusion confirmed by the fact";
+- "claims" as a noun after "bring" or "defeat";
+- declarations or a contract as the subject.
+
+Opinions narrate other people's words in too many ways for a word list. Measure before using
+it on court text; on English news headlines a consumer measured 0.90.
+
+**Portuguese attribution depends on the reading.** Round 2's labeller counted documents a body
+wrote ("a Nota Técnica informou", "o relatório afirma") as non-speakers. Round 1's did not.
+The rubric now says a body speaking through a document it wrote still counts, so ≈ 0.89 is the
+reading the library intends. Decide this before labelling your own sample.
+
+**Not fixed (v0.6 candidates):**
+- en "so-called" before a neutral legal term;
+- passages reproduced without any marks and without an emphasis note;
+- `removal` typed for "removed to federal court" and `harm`-less "fired" (a gun);
+- "if … were removed";
+- pt "informa" meaning "shapes";
+- OCR "Relatou" for "Relator".
 

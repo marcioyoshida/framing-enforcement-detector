@@ -23,6 +23,12 @@ appeal,' the lawyer said." "O ministério afirmou que…", "a empresa alegou que
 
 - The verb is not introducing a statement: "the report showed a decline" is about data,
   not speech. Label it **no** unless a person or body is the speaker.
+- A text itself as the subject is not a speaker: "the statute tells us", "the phrase tells
+  employers", "a comparison with other statutes shows", "o dispositivo diz", "vários
+  documentos mostram", "esta prática revela". Label it **no**. A person or body speaking
+  through a document it wrote still counts ("the complaint alleges", "o relator afirmou").
+- Fixed phrases and manner: "all told", "stated simply", "something to be said for",
+  "unless otherwise stated", "no que diz respeito", "aponta para a …": **no**.
 - "Alleged" as an adjective before a noun ("the alleged victim"): that is `hedge`.
 - Negated: "the ministry did not say", "o ministério não confirmou".
 

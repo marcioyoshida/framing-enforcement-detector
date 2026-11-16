@@ -11,6 +11,71 @@ from institutional_markers import scan
 N = None  # no subtype
 
 CASES = [
+    # --- v0.5.0 comparison fixes (agentless-v3, hedge-v3, attribution-v3) -------------
+    # "claims" as a plural noun is not speech; as a verb before "that" it still is.
+    ("en", "The case includes other claims that purportedly have nothing to do with it.",
+     "attribution_verb", []),
+    ("en", "The Court applied rational-basis review to sex-discrimination claims until 1970.",
+     "attribution_verb", []),
+    ("en", "These claims that were dismissed are not before us.", "attribution_verb", []),
+    ("en", "The company claims that the data was lost.", "attribution_verb",
+     [("claims", "distancing", True)]),
+    ("en", '"The deal is fair," the company claims.', "attribution_verb",
+     [("claims", "distancing", True)]),
+    # Guards need a word boundary: "is" inside "Chris" or "Davis" does not block "said".
+    ("en", "Chris said that the vote was close.", "attribution_verb", [("said", "neutral", True)]),
+    ("en", "Davis said the plan was dead.", "attribution_verb", [("said", "neutral", True)]),
+    # "says nothing / little" introduces no statement.
+    ("en", "The text of Rule 23 says nothing about provisional classes.", "attribution_verb", []),
+    # "aponta para a …" is evidence pointing, not speech.
+    ("pt", "A sentença aponta para a inexistência da irregularidade.", "attribution_verb", []),
+    ("pt", "A unidade técnica aponta que houve sobrepreço.", "attribution_verb",
+     [("aponta", "endorsing", True)]),
+    # A conditional passive is not a passive event (the hedge reads it).
+    ("pt", "O processo teria sido encerrado por meio de sentença.", "agentless_passive", []),
+    # "pela Lei 12.651" names an agent; "por lei" is a manner.
+    ("pt", "A referida lei foi revogada pela Lei 12.651, de 2012.", "agentless_passive", []),
+    ("pt", "O benefício foi suspenso por lei.", "agentless_passive",
+     [("foi suspenso", "sanction", True)]),
+    # "inabilitada" in a procurement is a removal; "inabilitado para o exercício" a sanction.
+    ("pt", "Das duas empresas, uma foi inabilitada no certame.", "agentless_passive",
+     [("foi inabilitada", "removal", True)]),
+    ("pt", "O gestor foi inabilitado para o exercício de cargo em comissão.", "agentless_passive",
+     [("foi inabilitado", "sanction", True)]),
+    # An indirect question is not a reporting conditional.
+    ("pt", "Não souberam dizer se cada item teria sido, ou não, objeto do contrato.", "hedge", []),
+    # An emphasis note closes a transcribed passage that has no quotation marks.
+    ("pt", "132. A defesa alega, nos seguintes termos: a suposta dívida foi paga em dia. "
+     "(grifos nossos)\n\n133. Não há prova da suposta entrega.", "hedge",
+     [("suposta", "label", False), ("suposta", "label", True)]),
+    ("en", "The panel wrote: the allegedly unlawful order stood (emphasis added). "
+     "We disagree.", "hedge", [("allegedly", "adverb", False)]),
+    # No colon before the note: the author's own words before the quotation stay invoked.
+    ("en", 'The allegedly abusive father, Jones told the doctor, was "not abusive." '
+     "Id. (emphasis added).", "hedge", [("allegedly", "adverb", True)]),
+    # A single quote before "(..)" opens a quotation.
+    ("pt", "Informa a responsável: '(..) os materiais da suposta dívida foram entregues.' Fim.",
+     "hedge", [("suposta", "label", False)]),
+    # attribution-v3, second round (fresh-sample errors).
+    ("en", "Nowhere did the statute say that the agency must act.", "attribution_verb", []),
+    ("en", "The rule adds the option of a hearing.", "attribution_verb", []),
+    ("en", "The officer added that the car was stolen.", "attribution_verb",
+     [("added", "neutral", True)]),
+    ("en", "All told, the program cost billions.", "attribution_verb", []),
+    ("en", "Stated simply, the claim fails.", "attribution_verb", []),
+    ("en", "The statutory scheme confirms that Congress meant it.", "attribution_verb", []),
+    ("en", "The agency confirms that the data was lost.", "attribution_verb",
+     [("confirms", "endorsing", True)]),
+    ("pt", "Vários documentos mostram que o pagamento foi feito.", "attribution_verb", []),
+    ("pt", "Esta prática revela que o controle falhou.", "attribution_verb", []),
+    ("pt", "O auditor revela que o controle falhou.", "attribution_verb",
+     [("revela", "endorsing", True)]),
+    ("en", "A comparison with other statutes shows that the word is temporal.", "attribution_verb", []),
+    ("en", "The Supremacy Clause tells us that state law must yield.", "attribution_verb", []),
+    ("pt", "Vários documentos, contrariamente, mostram que eles residiram juntos.", "attribution_verb", []),
+    # hedge-v3: "presumably" is the author's own inference; an indirect question is not a report.
+    ("en", "The panel presumably read the record.", "hedge", []),
+    ("pt", "Cabe saber se a falha teria prejudicado a concorrência.", "hedge", []),
     # --- v0.4.0 comparison fixes (agentless-v2, hedge-v2, attribution-v2) -------------
     # A PDF line wrap no longer ends the clause: the agent, the negator and the
     # hypothetical are seen across it.
