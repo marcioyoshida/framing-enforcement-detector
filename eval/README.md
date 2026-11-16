@@ -123,3 +123,22 @@ The consumer stopped at v3 (bar 0.85). English court text states burdens as doct
 more than it applies them, and wording does not tell the two apart. In Portuguese, about a
 third of the correct hits hinge on the stock-line reading in `rubrics/burden.md`; under the
 strict reading v3 is about 0.55.
+
+## Consumer measurements of `discretion` on real documents
+
+Same consumer, same conditions, two separate blind labellers (one per language). The
+reading was fixed **before** labelling: `yes` only when the document, in its own voice,
+reserves a decision in its own matter or closes it to review; doctrine, permissive rule
+text, quoted or paraphrased material and other senses are `no`.
+
+| Version | Corpus | en | pt |
+|---|---|---|---|
+| discretion-v1 | fresh agency notices and rules, supreme-court and appeals-court opinions; audit-court decisions | 0.32 (13 of 41) | 0.19 (6 of 32) |
+
+Counting doctrine as `yes` too gives about 0.4 in both languages. In English, court
+opinions scored 1 of 28. Agency text scored 12 of 13, but 10 of those were the same
+meeting-notice sentence. Of 73 hits, 54 were false: 27 quoted or paraphrased (earlier
+decisions, party arguments, transcribed opinions, statute text), 12 doctrine and 12 other
+senses (common-law "case-by-case", section headings). Telling a court's own holding from
+its account of someone else's words is not something a word list can do.
+

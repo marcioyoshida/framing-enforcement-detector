@@ -25,3 +25,20 @@ or appeal?
   the Director", "decisão irrecorrível").
 - `false`: a modal or general definition ("the agency may, at its discretion, …", "poderá, a
   seu critério"), or inside a direct quotation or quoted statute.
+
+## Hard cases (from a consumer measurement on court and audit-court text)
+
+Decide these before labelling, write the decision down and apply it to every span.
+
+- **Reported, not said.** A court restating an earlier decision ("in X the Court held the
+  order was not subject to review"), a party's argument, a transcribed opinion of another
+  body, or statute text paraphrased without quotation marks is `invoked: false`, the same
+  as a direct quotation. It is the hardest case for a word list and the most common one.
+- **Doctrine.** A general statement of law ("hardship findings are unreviewable",
+  "a Administração dispõe de discricionariedade…") is `invoked: false` unless it is tied
+  to a decision in this matter.
+- **Common-law "case-by-case".** "Courts develop the rule case by case" describes how law
+  is made, not a reserved decision: answer `no`.
+- **Headings and topic lists.** A bare noun ("Discricionariedade", "Discretion") naming a
+  section or an issue is `no`.
+

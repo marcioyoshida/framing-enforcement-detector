@@ -13,6 +13,14 @@ listed here.** A consumer that upgrades re-measures the markers whose version ch
   opinion; whether that counts as *applied* is a rubric choice (see `rubrics/burden.md`).
   Read strictly, precision is about 0.55. The remaining misses were quoted earlier
   decisions and general doctrine. No code change; see `eval/README.md`.
+- `discretion`: the same consumer measured **discretion-v1** (unchanged since 0.1.0) on fresh
+  documents, blind, every hit, with the reading fixed before labelling (only a reservation
+  in the document's own voice, in its own matter, counts): **en 0.32 (13 of 41), pt 0.19
+  (6 of 32)**, and stopped using the marker. Court opinions scored 1 of 28. Most false
+  hits are words the court reports rather than says (earlier decisions, party arguments,
+  transcribed opinions), doctrine, "case-by-case" meaning how common law develops, and
+  the bare noun "discricionariedade" in headings. New hard cases in
+  `rubrics/discretion.md`; no code change.
 
 ## 0.3.0 — 2026-11-15
 
