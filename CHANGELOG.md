@@ -4,6 +4,22 @@ Package versions follow semver (ADR 0001 §7): patch = docs/tests only; minor = 
 or a marker version bump; major = an interface change. **Every marker version change is
 listed here.** A consumer that upgrades re-measures the markers whose version changed.
 
+## 0.7.0 — 2026-11-17
+
+- `attribution_verb` **attribution-v4 → v5**, English only. Fixes the v0.6.0 recall regression:
+  "declared / declares" right after a closing quotation counts again ('"…," the governor
+  declared.', '"…," declared the minister.'). The verb must end the sentence or take an
+  inverted subject, so '"…," the court declared it unconstitutional' stays out. Nothing else
+  changed: across the English and Portuguese development pools, v5 adds one span to v4 and
+  removes none. Every other marker returns identical hits.
+  - Reference held-out set: English attribution recall 0.63 → 0.67, back to the 0.5.0 level,
+    with precision 1.00 (`eval/heldout2_result_v0.7.0.json`). That item was seen when v0.6.0 was
+    scored, so this recall figure is no longer blind for it.
+  - **Measured fresh, blind** (`eval/README.md`): **en 0.89 (31 of 35)** on 80 new US federal
+    court opinions, a second round after 0.86 for v4. The new form never occurs in that pool
+    (about once in 400 opinions), so its precision on court text rests on that rarity. It is
+    measured only by the reference held-out case. pt is unchanged (identical hits, 0.89).
+
 ## 0.6.0 — 2026-11-16
 
 - `attribution_verb` **attribution-v3 → v4**, English only. Every other marker, and Portuguese

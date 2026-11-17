@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "institutional-markers"
-version = "0.6.0"
+version = "0.7.0"
 description = "Deterministic, span-grounded markers of institutional language (en, pt). No model, no dependencies."
 readme = "README.md"
 license = {text = "MIT"}

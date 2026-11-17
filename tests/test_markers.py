@@ -11,6 +11,14 @@ from institutional_markers import scan
 N = None  # no subtype
 
 CASES = [
+    # --- v0.7.0: attribution-v5 ("declared" after a quotation) --------------------------
+    ("en", '"The bridge stays closed until further notice," the mayor declared.', "attribution_verb",
+     [("declared", "neutral", True)]),
+    ("en", '"Enough," declared the minister.', "attribution_verb", [("declared", "neutral", True)]),
+    ("en", '"Go home," she declared, "and stay there."', "attribution_verb", [("declared", "neutral", True)]),
+    # Still an act, not speech, after a quotation.
+    ("en", '"The rule is void," and the court declared it unconstitutional.', "attribution_verb", []),
+    ("en", '"Results," the board declares a dividend of five cents.', "attribution_verb", []),
     # --- v0.6.0: attribution-v4 (English, court-opinion errors) --------------------------
     # A text, document or doctrine as the subject, read across a quotation and a section number.
     ("en", 'But what in the phrase "during an emergency" tells an employer that a link is required?',

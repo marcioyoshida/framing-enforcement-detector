@@ -405,6 +405,11 @@ ATTRIBUTION = [
     Pattern("attr-endorsing", _VERB_AHEAD + _NOT_PASSIVE + _NOT_SAID_ADJ + r"(?P<m>" + _ENDORSING_V4 + r")" + _NOT_BY + _STRICT,
             subtype="endorsing", modal_blocks=True, blocked_by=_TEXT_BLOCK, **_NEAR),
     # '"…," the minister claimed' / '"…," claimed the minister'
+    # attribution-v5: '"…," the governor declared.' / '"…," declared the minister.' The verb
+    # ends the sentence or takes an inverted subject, so "declared unconstitutional" stays out.
+    Pattern("attr-neutral-declare-inv", _CLOSE_Q + r"(?P<m>" + _DECLARE + r")"
+            r"(?=\s*[.,;!?]|\s*$|\s+(?:the|a|an)\s+[\w'-]+(?:\s+[\w'-]+)?\s*(?:[.,;!?]|$))",
+            subtype="neutral", lead_boundary=False),
     Pattern("attr-distancing-inv", _CLOSE_Q + r"(?P<m>" + _DISTANCING_INV + r")",
             subtype="distancing", lead_boundary=False),
     Pattern("attr-endorsing-inv", _CLOSE_Q + r"(?P<m>" + _ENDORSING + r")",

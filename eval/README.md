@@ -292,3 +292,31 @@ development corpus, with no new span. On the reference held-out set, recall drop
 "declared" now needs a that-clause or a colon. That is a v0.7 candidate. It was seen on the
 held-out set after v4 was frozen, so fixing it needs a fresh set.
 
+### attribution-v5 (library 0.7.0)
+
+One change: "declared / declares" right after a closing quotation counts again (the v0.6.0
+regression above). v5 = v4 plus that pattern. On the development pools it adds one span and
+removes none, and every other marker is unchanged.
+
+**Second fresh round on court opinions.** 80 more US federal court opinions from the same
+GovInfo month, from the next page of the listing (Eighth Circuit and district courts), none seen
+before. 248 v5 hits in 36 documents; 35 drawn at random, at most 3 per document. A new blind
+labeller had the same rubric and rulings.
+
+| Marker | Version | en | pt |
+|---|---|---|---|
+| attribution_verb | attribution-v5 | **0.89 (31 of 35)**; v4 had 0.86 (30 of 35) | 0.89*, unchanged hits |
+
+\* The v3 figure. The Portuguese hits have been identical since then.
+
+The new pattern fired on none of the 248 hits, so this round also measures v4's code a second
+time. Subtypes 33 of 33. The four errors:
+- two passages reproduced as block quotes without quotation marks (a known gap: nothing marks
+  them);
+- "his discrimination claims, asserting that …", where "claims" is a noun after a noun;
+- "the certified trust fund statement reveals that …", where a document is the subject.
+
+These are v0.8 candidates. The reference held-out set's English attribution recall is back to
+0.67 (precision 1.00). The fixed item was seen when v0.6.0 was scored, so that figure is no
+longer blind for it.
+

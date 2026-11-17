@@ -12,7 +12,7 @@ MARKERS: dict[str, MarkerSpec] = {m.name: m for m in (
     MarkerSpec("agentless_passive", "agentless-v3", "comparison",
                ("harm", "sanction", "removal", "error")),
     MarkerSpec("hedge", "hedge-v3", "comparison", ("adverb", "label", "report_conditional")),
-    MarkerSpec("attribution_verb", "attribution-v4", "comparison",
+    MarkerSpec("attribution_verb", "attribution-v5", "comparison",
                ("neutral", "distancing", "endorsing")),
 )}
 
