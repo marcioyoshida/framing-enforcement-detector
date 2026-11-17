@@ -17,7 +17,7 @@ from ._markers import MARKER_VERSIONS, MARKERS
 from ._scan import LANGS, scan
 from ._types import Hit, MarkerSpec
 
-PACKAGE_VERSION = "0.5.0"
+PACKAGE_VERSION = "0.6.0"
 
 __all__ = ["scan", "Hit", "MarkerSpec", "MARKERS", "MARKER_VERSIONS", "LANGS",
            "PACKAGE_VERSION"]

@@ -57,6 +57,10 @@ class Pattern:
     #: Words that drop the hit when they occur in the clause right after the span (a
     #: reporting conditional followed by "caso … estivesse" is a hypothetical).
     blocked_after: frozenset[str] = frozenset()
+    #: Words that drop the hit when they occur among the NEAR_WINDOW words right before the
+    #: span, read across quoted passages with their interiors skipped (the subject of a
+    #: speech verb: 'the phrase "during a national emergency" tells', attribution-v4).
+    blocked_near: frozenset[str] = frozenset()
     #: The wording itself only defines a rule ("é dispensável a licitação" = may be
     #: dispensed with): always invoked=False.
     always_defined: bool = False

@@ -4,6 +4,39 @@ Package versions follow semver (ADR 0001 §7): patch = docs/tests only; minor = 
 or a marker version bump; major = an interface change. **Every marker version change is
 listed here.** A consumer that upgrades re-measures the markers whose version changed.
 
+## 0.6.0 — 2026-11-16
+
+- `attribution_verb` **attribution-v3 → v4**, English only. Every other marker, and Portuguese
+  attribution, returns exactly the same hits as 0.5.0. Consumers re-measure English attribution.
+  - **Engine.** A pattern can block on the words right before its span (`blocked_near`): the
+    last three words after the last comma, colon, dash or full stop, with quoted interiors
+    skipped, numbers and one-letter tokens skipped, and a word hyphenated across a line read
+    whole. Only English attribution uses it.
+  - Subject right before the verb: a text, document, doctrine or practice ("the phrase "…"
+    tells", "none of the declarations said", "Section 1101(a)(13)(C)(v) says", "her email
+    stated", "the doctrine says", "historical practice shows"), or a modal ("unless a doctor
+    could actually say", "unless Congress clearly says"). "This / which / what" before
+    "shows / reveals / confirms" is evidence.
+  - Not speech: "would / could / should have said so", "Imagine … says", "That said,",
+    ", say, " (for example), "says a lot / much / more", "stated a claim", "wrote for the
+    Court", "stated below / herein", "for the reasons stated", a verb followed by "by"
+    ("confirmed by the fact"), a participle after a possessive or an article ("its declared
+    objectives", "the employer's stated reason"), the tail of a word hyphenated across a line
+    ("rein- stated"), "insisted upon", "tells X to do", and a strict verb whose comma opens a new
+    clause ("explained, we disagree … that").
+  - "declared / declares" need a that-clause or a colon ("declared unconstitutional" is an act).
+    **Recall cost:** '"…," the governor declared.' is no longer found.
+  - "claims" is a noun after a preposition or a litigation verb ("bring claims", "defeat
+    claims", "with claims at common law") and before "based / under / against / of / at …".
+  - Every guard on the word before a verb now accepts one or two spaces, because PDF text
+    often doubles them.
+  - A literal look-ahead for the verb makes the English attribution scan about 4× faster.
+    It changes no hit.
+  - **Measured fresh, blind, rulings fixed before labelling** (`eval/README.md`): **en 0.86
+    (30 of 35)** on US federal court opinions, one round, which clears the 0.85 bar by one
+    item. pt is unchanged (identical hits, 0.89). Reference held-out set: English attribution
+    recall 0.67 → 0.63, precision 1.00 (`eval/heldout2_result_v0.6.0.json`).
+
 ## 0.5.0 — 2026-11-16
 
 - `agentless_passive` **agentless-v2 → v3**, `hedge` **hedge-v2 → v3**, `attribution_verb`

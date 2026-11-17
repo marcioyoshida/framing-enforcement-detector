@@ -1,6 +1,7 @@
 """scan(): run the packs over one text and return verbatim hits."""
 from __future__ import annotations
 
+import re
 from types import ModuleType
 from typing import Iterable, Sequence
 
@@ -22,6 +23,10 @@ AGENT_WINDOW = 80
 #: Characters after an institutional marker searched for a modal, inside its clause
 #: ("in exceptional circumstances, the deadline may be extended").
 MODAL_AFTER = 60
+#: Words before a span checked for ``blocked_near``: quoted interiors skipped, and never
+#: before the last comma, colon, dash or full stop ("Under that standard, the Court
+#: explained"; "§1415(l).6 The District maintains", where a footnote hides the stop).
+NEAR_WINDOW = 3
 
 
 def scan(
@@ -82,6 +87,8 @@ def _apply(p: Pattern, name: str, text: str, folded: str, clauses: Clauses,
             continue
         if p.blocked_by and set(before) & p.blocked_by:
             continue
+        if p.blocked_near and set(_near(folded, c_start, left, quotes)) & p.blocked_near:
+            continue
         if p.blocked_after and set(tokens(folded[end:min(c_end, end + AGENT_WINDOW)])) & p.blocked_after:
             continue
         if p.agent_check:
@@ -108,6 +115,26 @@ def _apply(p: Pattern, name: str, text: str, folded: str, clauses: Clauses,
                        quote=quote, pattern_id=f"{pack.LANG}:{p.id}", subtype=p.subtype,
                        invoked=invoked))
     return out
+
+
+_NEAR_CUT = re.compile(r"[,:—]|\s-\s|\.\d{0,3}\s")
+_LINE_HYPHEN = re.compile(r"(\w)-\s+(\w)")
+
+
+def _near(folded: str, c_start: int, left: int, quotes: list[tuple[int, int]]) -> list[str]:
+    """The NEAR_WINDOW words before ``left`` in its clause, quoted interiors skipped."""
+    chars = list(folded[c_start:left])
+    for s, e in quotes:
+        for i in range(max(s, c_start), min(e, left)):
+            chars[i - c_start] = " "
+    # A word hyphenated across a line ("dic-\ntionaries") is read whole.
+    seg = _LINE_HYPHEN.sub(r"\1\2", "".join(chars))
+    cuts = [m.end() - 1 for m in _NEAR_CUT.finditer(seg)]
+    cut = cuts[-1] if cuts else -1
+    # A section number does not push the noun out of the window ("Section 1101(a)(13)(C)(v)
+    # says", "§3322(a) just says"): numbers and one-letter tokens are skipped.
+    seg = seg[cut + 1:].replace("§", " section ")
+    return [t for t in tokens(seg) if len(t) > 1 and not t.isdigit()][-NEAR_WINDOW:]
 
 
 def _negated(window: list[str], negators: frozenset[str]) -> bool:

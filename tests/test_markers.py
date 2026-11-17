@@ -11,6 +11,62 @@ from institutional_markers import scan
 N = None  # no subtype
 
 CASES = [
+    # --- v0.6.0: attribution-v4 (English, court-opinion errors) --------------------------
+    # A text, document or doctrine as the subject, read across a quotation and a section number.
+    ("en", 'But what in the phrase "during an emergency" tells an employer that a link is required?',
+     "attribution_verb", []),
+    ("en", "None of the remaining declarations said anything about removal.", "attribution_verb", []),
+    ("en", "The contract incorporated the Act's provisions and stated that each must be read broadly.",
+     "attribution_verb", []),
+    ("en", "Section 1101(a)(13)(C)(v) says that a resident may leave.", "attribution_verb", []),
+    ("en", "At its core, the doctrine says that losing parties may not appeal to a trial court.",
+     "attribution_verb", []),
+    ("en", "Her email stated, \"we will offer a full scholarship.\"", "attribution_verb", []),
+    ("en", "Contemporaneous legal dic-\ntionaries explained that a claim accrues later.", "attribution_verb", []),
+    ("en", "Under that standard, the Court explained that the claim fails.", "attribution_verb",
+     [("explained", "endorsing", True)]),
+    ("en", "The rule is settled.6 The District maintains that the rule survives.", "attribution_verb",
+     [("maintains", "distancing", True)]),
+    # Counterfactual, modal or hypothetical speech.
+    ("en", "Congress surely would have said so in the statute.", "attribution_verb", []),
+    ("en", "Unless a doctor could actually say that the procedure was necessary, it was barred.",
+     "attribution_verb", []),
+    ("en", "Imagine a parent who hands over a card and says, \"have fun.\"", "attribution_verb", []),
+    # Fixed phrases and adjectival participles.
+    ("en", "That said, brokers may sometimes learn of unsafe carriers.", "attribution_verb", []),
+    ("en", "A conviction adding no points, because, say, it is very old, does not count.",
+     "attribution_verb", []),
+    ("en", "The decision is anathema to its declared objectives.", "attribution_verb", []),
+    ("en", "File a motion on or before the comment date stated below.", "attribution_verb", []),
+    ("en", "The employer's stated reason was pretextual.", "attribution_verb", []),
+    ("en", "We held that the plaintiff stated a claim under Title II.", "attribution_verb", []),
+    ("en", "Justice Jackson wrote for the Court in Skidmore.", "attribution_verb", []),
+    ("en", "In 2022 the agency rein-\nstated approval of the rules.", "attribution_verb", []),
+    ("en", "Congress's silence says a lot.", "attribution_verb", []),
+    ("en", "They sought to have the order declared unconstitutional.", "attribution_verb", []),
+    ("en", "Lincoln declared that the decision was erroneous.", "attribution_verb",
+     [("declared", "neutral", True)]),
+    # Not speech: an instruction, emphasis, a participle with an agent, a noun.
+    ("en", "When the government tells automakers to make smaller cars, demand falls.", "attribution_verb", []),
+    ("en", "The court insisted upon that fact throughout its opinion.", "attribution_verb", []),
+    ("en", "It is a conclusion confirmed by the fact that nothing changed.", "attribution_verb", []),
+    ("en", "Private parties remain free to bring  claims based on these violations.", "attribution_verb", []),
+    ("en", "Exhaustion rules will slow or defeat claims that ought to go forward.", "attribution_verb", []),
+    ("en", "Both statutes share elements with claims at common law that Congress found inadequate.",
+     "attribution_verb", []),
+    ("en", "The view is relevant to the earlier, claims in this case.", "attribution_verb", []),
+    ("en", "Historical practice similarly shows that legislation was the usual way.", "attribution_verb", []),
+    ("en", "This shows that the travellers arrive at the port.", "attribution_verb", []),
+    ("en", "As explained, we disagree with the proposition that a settlement is final.",
+     "attribution_verb", []),
+    # Still attribution.
+    ("en", "Plaintiff alleges that the officer struck him.", "attribution_verb",
+     [("alleges", "distancing", True)]),
+    ("en", "The Court told us that the case was moot.", "attribution_verb", [("told", "neutral", True)]),
+    ("en", "The plaintiffs\u2014all of them\u2014alleged that the fees were too high.", "attribution_verb",
+     [("alleged", "distancing", True)]),
+    ("en", "We have often said that a statute is content-based on its face.", "attribution_verb",
+     [("said", "neutral", True)]),
     # --- v0.5.0 comparison fixes (agentless-v3, hedge-v3, attribution-v3) -------------
     # "claims" as a plural noun is not speech; as a verb before "that" it still is.
     ("en", "The case includes other claims that purportedly have nothing to do with it.",

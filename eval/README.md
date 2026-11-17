@@ -245,11 +245,50 @@ wrote ("a Nota Técnica informou", "o relatório afirma") as non-speakers. Round
 The rubric now says a body speaking through a document it wrote still counts, so ≈ 0.89 is the
 reading the library intends. Decide this before labelling your own sample.
 
-**Not fixed (v0.6 candidates):**
+**Not fixed in v0.5.0** (still open after v0.6.0 unless noted below):
 - en "so-called" before a neutral legal term;
 - passages reproduced without any marks and without an emphasis note;
 - `removal` typed for "removed to federal court" and `harm`-less "fired" (a gun);
 - "if … were removed";
 - pt "informa" meaning "shapes";
 - OCR "Relatou" for "Relator".
+
+### attribution-v4 (library 0.6.0) on fresh documents
+
+Same consumer, 2026-11-16. Only English `attribution_verb` changed (attribution-v3 → v4); every
+other marker returns exactly the same hits as in 0.5.0, so its cells above still hold. That
+includes Portuguese attribution: v4's Portuguese hits are identical to v3's on every audit-court
+document the consumer measured.
+
+**How v4 was made.** The fixes come from the two failed English rounds above and from reading
+about 230 unlabelled hits from documents those rounds had already used (Supreme Court opinions
+of the 2023–2025 terms, appeals-court opinions, agency rules). None came from the measurement
+documents. On those development hits the tuner's own reading put v3 at about 0.7 and v4 at
+about 0.9; that reading is not a measurement.
+
+**Measurement.** One fresh round. US federal court opinions published on GovInfo in September
+2025: Second Circuit, Court of Federal Claims and district courts. No document had been seen by
+any labeller or by the tuner before v4 was frozen. 505 v4 hits in 59 of the 80 opinions; 35
+were drawn at random, at most 3 per document. A new blind labeller had only the rubric, the
+same rulings as round 2 above and the contexts.
+
+| Marker | Version | en | pt |
+|---|---|---|---|
+| attribution_verb | attribution-v4 | **0.86 (30 of 35)**, one round | 0.89 (31 of 35)*, unchanged hits |
+
+\* The v3 figure. The hits are the same.
+
+Subtype accuracy was 30 of 30. **0.86 clears the 0.85 bar by one item.** With 35 items the
+uncertainty is roughly ±0.1, so treat English court text as borderline and measure your own
+sample. The five errors were again forms no earlier round showed:
+- a medical test as the subject ("an MRI revealed", "a repeat echocardiogram revealed"), twice;
+- "account stated", the name of a cause of action;
+- "herein expressly stated";
+- "plaintiffs who have alleged actual damages", a generic requirement.
+
+**What v4 gives up.** v4 only removes hits: about 15% of English attribution hits on the
+development corpus, with no new span. On the reference held-out set, recall drops from 0.67 to
+0.63 with precision unchanged: '"…," the governor declared.' is no longer found, because
+"declared" now needs a that-clause or a colon. That is a v0.7 candidate. It was seen on the
+held-out set after v4 was frozen, so fixing it needs a fresh set.
 

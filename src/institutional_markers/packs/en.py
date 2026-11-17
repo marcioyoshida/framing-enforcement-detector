@@ -251,28 +251,62 @@ _LOOSE = (r"(?=(?:[\s,]+(?!that\b)[\w']+){0,6}?[\s,]+that\b|(?:\s+[\w']+){0,8}\s
           r"|(?:\s+[\w']+){0,8}\s*$|\s+(?:they|he|she|it|we|the)\s+\w+)")
 #: Verbs that also mean an act ("confirmed the sentence", "claimed the land"): a "that"
 #: clause, a colon or a quote only. Inversions after a quote are a separate pattern.
-_STRICT = r"(?=(?:[\s,]+(?!that\b)[\w']+){0,6}?[\s,]+that\b|\s*:|\s*[\"'])"
+_STRICT = (r"(?!\s*,\s*(?:we|they|he|she|i|you)\s)"  # attribution-v4: "explained, we disagree … that"
+           r"(?=(?:[\s,]+(?!that\b)[\w']+){0,6}?[\s,]+that\b|\s*:|\s*[\"'])")
 #: Right after a closing quote: '…," the minister claimed' / '…,' admitted the director.
 _CLOSE_Q = r"(?:[,.!?]\s*[\"']|[\"']\s*,)\s*(?:[\w'-]+\s+){0,3}?"
 
+def _not_before(*words: str) -> str:
+    """Lookbehinds for each word (or two-word phrase) and one or two whitespace characters
+    after it (attribution-v4: PDF text often doubles a space, "necessary to  say so")."""
+    out = []
+    for w in words:
+        w = w.replace(" ", r"\s")
+        out.append(rf"(?<!\b{w}\s)(?<!\b{w}\s\s)")
+    return "".join(out)
+
+
 #: Not after a passive auxiliary ("he was told to leave") or a determiner ("the said
 #: contract", legal usage). "states" is left out: "member states." is a noun.
-_NOT_PASSIVE = (r"(?<!\bwas\s)(?<!\bwere\s)(?<!\bbeen\s)(?<!\bbeing\s)(?<!\bthe\s)(?<!\bof\s)(?<!\bis\s)(?<!\bto\s)"
+_NOT_PASSIVE = (_not_before("was", "were", "been", "being", "the", "of", "is", "to")
                 # attribution-v2: "something to be said for", "unless otherwise stated",
                 # "the complaint nowhere alleges".
-                r"(?<!\bbe\s)(?<!\botherwise\s)(?<!\bnowhere\s)")
+                + _not_before("be", "otherwise", "nowhere")
+                # attribution-v4: a counterfactual ("Congress surely would have said so").
+                + _not_before("would have", "could have", "should have", "might have", "must have")
+                # attribution-v4: the tail of a word hyphenated across a line ("rein-\nstated"),
+                # and a participle used as an adjective ("its declared objectives").
+                + r"(?<!\w-\s)(?<!\w-\s\s)"
+                + _not_before("its", "their", "his", "her", "our", "your", "a", "an", "any", "no", "'s"))
+#: attribution-v4: a speech verb followed by "by" is a passive participle with an agent
+#: ("a conclusion confirmed by the fact that …"), not a report.
+_NOT_BY = r"(?!\s+by\b)"
 #: attribution-v3: every guard above needs a word boundary; without it "Chris said" and
 #: "Davis said" were dropped ("is" inside the name) since v1.
 #: attribution-v2: "said" after a preposition is the legal adjective ("in said County",
 #: "within and for said Court"), not a speech verb.
-_NOT_SAID_ADJ = (r"(?<!\bin\s)(?<!\bfor\s)(?<!\bwithin\s)(?<!\bfrom\s)(?<!\bupon\s)(?<!\bunder\s)(?<!\bby\s)"
-                 r"(?<!\bat\s)(?<!\bon\s)(?<!\bwith\s)")
+_NOT_SAID_ADJ = _not_before("in", "for", "within", "from", "upon", "under", "by", "at", "on", "with")
 #: attribution-v3: "told", "tells", "added" and "adds" also take a plain object ("adds the
 #: option", "tells us nothing"), so they need a that-clause, a colon or a quotation (strict).
-_NEUTRAL = _alt(_NOT_SAID_ADJ + "said", "says", "say", "stated", "wrote", "writes", "declared", "declares")
-_NEUTRAL_STRICT = _alt(r"(?<!\ball\s)told", "tells", "added", "adds")
+#: attribution-v4: "say" between commas is "for example" ("because, say, it is old");
+#: "declared"/"declares" take an object too ("declared unconstitutional"): that-clause only.
+#: "That said, …" is a discourse phrase; "stated a claim" is the pleading idiom.
+_NEUTRAL = _alt(r"(?<!\bthat\s)said", "says", r"say(?!\s*,)",
+               # "for the reasons stated in the preamble"
+               r"(?<!\breasons\s)(?<!\bgrounds\s)(?<!\bdate\s)(?<!\bamount\s)(?<!\bpurpose\s)stated"
+               r"(?!\s+(?:a|an|no|any)\s+(?:\w+\s+)?claims?\b)",
+               "wrote", "writes")
+_DECLARE = _alt("declared", "declares")
+_THAT_ONLY = r"(?=(?:[\s,]+(?!that\b)[\w']+){0,6}?[\s,]+that\b|\s*:)"
+#: attribution-v4: "tells automakers to make …" is an instruction, not a report.
+_NOT_INSTRUCT = r"(?!\s+(?:the\s+|its\s+|their\s+)?[\w']+\s+(?:not\s+)?to\b)"
+_NEUTRAL_STRICT = _alt(r"(?<!\ball\s)told" + _NOT_INSTRUCT, "tells" + _NOT_INSTRUCT, "added", "adds")
 #: attribution-v3: a manner phrase ("stated simply", "put differently") is not a statement.
-_NOT_MANNER = r"(?!\s+(?:simply|differently|otherwise|briefly|generally|plainly|broadly|another\s+way|more\s+\w+ly)\b)"
+_NOT_MANNER = (r"(?!\s+(?:simply|differently|otherwise|briefly|generally|plainly|broadly|another\s+way|more\s+\w+ly"
+               # attribution-v4: a participle pointing within the text ("the date stated below").
+               r"|below|above|herein|therein|hereinafter"
+               # "Justice Jackson wrote for the Court" (authorship, no statement).
+               r"|for\s+(?:the|a)\s+(?:\w+\s+)?(?:court|majority|plurality|panel))\b)")
 #: attribution-v3: a text or evidence as the subject is not a speaker ("the statute tells
 #: us", "a comparison with other statutes shows that", "the record confirms"). Checked over
 #: the clause before the verb, for the verbs that take such subjects.
@@ -282,44 +316,94 @@ _TEXT_SUBJECT_EN = frozenset({
     "words", "scheme", "canon", "definition", "structure", "history", "record", "records",
     "evidence", "comparison", "data", "document", "documents", "study", "studies", "results",
     "testimony", "precedent", "precedents", "context", "experience"})
+#: attribution-v4: more subjects, checked only on the words right before the verb (_NEAR);
+#: the clause-wide check above keeps its v3 list.
+_TEXT_SUBJECT_NEAR = _TEXT_SUBJECT_EN | frozenset({
+    # contracts and declarations ("the contract … stated that", "none of the
+    # declarations said"), and more parts of a text.
+    "contract", "contracts", "agreement", "agreements", "declaration", "declarations", "act",
+    "term", "terms", "subsection", "paragraph", "sentence", "title", "code", "fact", "facts",
+    "conclusion", "analysis", "doctrine", "doctrines", "principle", "principles", "test", "standard",
+    "presumption", "framework", "maxim", "practice", "practices", "tradition", "traditions",
+    "reaction", "pattern", "example", "examples", "dictionary", "dictionaries", "treatise",
+    "treatises",
+    # Documents as the subject ("what the certification said", "her email stated"); pleadings
+    # that speak for a party ("the complaint alleges") are not listed.
+    "certification", "certificate", "certificates", "email", "emails", "letter", "letters", "memo",
+    "memorandum", "report", "reports", "notice", "form", "affidavit", "affidavits", "manual",
+    "guidance", "policy", "website", "label", "labels", "minutes", "transcript", "order", "orders",
+    "theory", "theories", "argument", "arguments", "guide", "guides", "guideline", "guidelines",
+    "book", "books", "article", "articles"})
 _DISTANCING_VERBS = ("claimed", "alleged", "alleges", "insisted", "insists", "maintained",
                      "maintains", "contended", "contends", "asserted", "asserts")
 #: attribution-v3: "claims" is far more often the plural noun ("other claims that have
 #: nothing to do with…", "sex-discrimination claims"); it gets its own, stricter pattern.
-_DISTANCING = _alt(*_DISTANCING_VERBS)
+#: attribution-v4: "insisted upon that fact" (emphasis) is not a report.
+_DISTANCING = _alt(*_DISTANCING_VERBS) + r"(?!\s+(?:upon|on)\b)"
 #: After a quotation or a comma the verb reading is safe, so "claims" stays there.
 _DISTANCING_INV = _alt("claims", *_DISTANCING_VERBS)
-_NOUN_BEFORE = "".join(rf"(?<!\b{w}\s)" for w in (
+#: attribution-v4: one or two whitespace characters (PDF text often doubles the space).
+_NOUN_BEFORE = "".join(rf"(?<!\b{w}\s)(?<!\b{w}\s\s)" for w in (
     "the", "these", "those", "their", "his", "her", "its", "our", "your", "such", "any", "all",
     "both", "other", "and", "or", "of", "no", "two", "new", "similar", "related", "remaining",
-    "state", "federal", "these", "whose", "many", "several", "some", "those", "pending"))
+    "state", "federal", "these", "whose", "many", "several", "some", "those", "pending",
+    # attribution-v4: "claims" as the object of a litigation verb ("bring claims based on …",
+    # "slow or defeat claims that …").
+    "bring", "brings", "brought", "bringing", "defeat", "defeats", "slow", "raise", "raises",
+    "raised", "assert", "file", "filed", "files", "dismiss", "dismissed", "pursue", "pursued",
+    "press", "pressed", "preserve", "preserved", "forfeit", "forfeited", "waive", "waived",
+    "adjudicate", "resolve", "resolved", "litigate", "bar", "bars", "barred", "deny", "denied",
+    "reject", "rejected", "own"))
+#: attribution-v4: "claims" before a preposition of a lawsuit is the noun ("claims based on",
+#: "claims under §1983", "claims against the State").
+_CLAIMS_NOUN_AFTER = (r"(?!\s+(?:based|under|arising|against|for|of|at|brought|filed|asserted|raised|related"
+                      r"|involving|stemming|alleging|premised|sounding)\b)")
 #: A that-clause opening a relative clause ("claims that were dismissed") is not speech.
 _RELATIVE = (r"(?!\s+(?:\w+ly\s+)?(?:were|are|is|was|have|had|has|could|would|can|may|might|must"
              r"|should|do|did|does|arise|arose|remain|involve|relate|concern|seek|sought)\b)")
 _CLAIMS_STRICT = r"(?=(?:[\s,]+(?!that\b)[\w']+){0,6}?[\s,]+that\b" + _RELATIVE + r"|\s*:)"
+#: attribution-v4: "This shows that" / "which confirms that": the evidence just cited.
+_EVIDENCE_PRON = _not_before("this", "which", "what")
 _ENDORSING = _alt("confirmed", "confirms", "revealed", "reveals", "acknowledged", "acknowledges",
                   "admitted", "admits", "explained", "explains", r"pointed\s+out", r"points\s+out",
                   "showed", "shows")
+_ENDORSING_V4 = _alt(_EVIDENCE_PRON + "confirmed", _EVIDENCE_PRON + "confirms", _EVIDENCE_PRON + "revealed",
+                     _EVIDENCE_PRON + "reveals", "acknowledged", "acknowledges", "admitted", "admits", "explained",
+                     "explains", r"pointed\s+out", r"points\s+out", _EVIDENCE_PRON + "showed",
+                     _EVIDENCE_PRON + "shows")
 
 #: attribution-v2: a modal right before the verb is a possible statement, not one made
 #: ("nothing he could say").
+#: attribution-v4: an invented scenario ("Imagine a parent who … says, …").
+_HYPO_EN = frozenset({"imagine", "suppose", "supposing", "hypothetically"})
 _ATTR = dict(modal_blocks=True,
              # attribution-v3: "Nowhere did the statute say …" (the negator can sit far back).
-             blocked_by=frozenset({"nowhere"}))
-_TEXT_BLOCK = _TEXT_SUBJECT_EN | {"nowhere"}
+             blocked_by=frozenset({"nowhere"}) | _HYPO_EN)
+_TEXT_BLOCK = _TEXT_SUBJECT_EN | {"nowhere"} | _HYPO_EN
+#: attribution-v4: the text-subject check also runs on the words right before the verb, read
+#: across a quotation ('the phrase "during a national emergency" tells'), for every verb.
+#: A modal a word or two back is a possible statement ("unless a doctor could actually say
+#: that", "unless Congress clearly says as much").
+_NEAR = dict(blocked_near=_TEXT_SUBJECT_NEAR | MODALS)
 
+#: attribution-v4: a literal look-ahead for the verb first, so the many guards above run only
+#: where a verb starts (speed only; it matches nothing the guards would not).
+_VERB_AHEAD = (r"(?=sa[iy]|stat|wro|writ|tol|tell|add|declar|claim|alleg|insist|maint|contend|assert|confirm"
+               r"|reveal|acknowledg|admit|explain|point|show)")
 ATTRIBUTION = [
     # attribution-v3: "says nothing / little / no" introduces no statement.
-    Pattern("attr-neutral", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL + r")(?!\s+(?:nothing|little|no)\b)" + _NOT_MANNER
-            + _LOOSE, subtype="neutral", **_ATTR),
-    Pattern("attr-neutral-strict", _NOT_PASSIVE + r"(?P<m>" + _NEUTRAL_STRICT + r")(?!\s+(?:nothing|little|no)\b)"
-            + _STRICT, subtype="neutral", modal_blocks=True, blocked_by=_TEXT_BLOCK),
-    Pattern("attr-distancing", _NOT_PASSIVE + r"(?P<m>" + _DISTANCING + r")" + _STRICT,
-            subtype="distancing", **_ATTR),
-    Pattern("attr-distancing-claims", _NOT_PASSIVE + _NOUN_BEFORE + r"(?P<m>claims)" + _CLAIMS_STRICT,
-            subtype="distancing", **_ATTR),
-    Pattern("attr-endorsing", _NOT_PASSIVE + r"(?P<m>" + _ENDORSING + r")" + _STRICT,
-            subtype="endorsing", modal_blocks=True, blocked_by=_TEXT_BLOCK),
+    Pattern("attr-neutral", _VERB_AHEAD + _NOT_PASSIVE + _NOT_SAID_ADJ + r"(?P<m>" + _NEUTRAL + r")(?!\s+(?:nothing|little|no|much|more|less|anything|volumes|a\s+lot)\b)" + _NOT_MANNER
+            + _NOT_BY + _LOOSE, subtype="neutral", **_ATTR, **_NEAR),
+    Pattern("attr-neutral-declare", _VERB_AHEAD + _NOT_PASSIVE + _NOT_SAID_ADJ + r"(?P<m>" + _DECLARE + r")" + _THAT_ONLY,
+            subtype="neutral", **_ATTR, **_NEAR),
+    Pattern("attr-neutral-strict", _VERB_AHEAD + _NOT_PASSIVE + _NOT_SAID_ADJ + r"(?P<m>" + _NEUTRAL_STRICT + r")(?!\s+(?:nothing|little|no)\b)"
+            + _NOT_BY + _STRICT, subtype="neutral", modal_blocks=True, blocked_by=_TEXT_BLOCK, **_NEAR),
+    Pattern("attr-distancing", _VERB_AHEAD + _NOT_PASSIVE + _NOT_SAID_ADJ + r"(?P<m>" + _DISTANCING + r")" + _NOT_BY + _STRICT,
+            subtype="distancing", **_ATTR, **_NEAR),
+    Pattern("attr-distancing-claims", _VERB_AHEAD + _NOT_PASSIVE + _NOT_SAID_ADJ + _NOUN_BEFORE + r"(?P<m>claims)" + _CLAIMS_NOUN_AFTER
+            + _CLAIMS_STRICT, subtype="distancing", **_ATTR, **_NEAR),
+    Pattern("attr-endorsing", _VERB_AHEAD + _NOT_PASSIVE + _NOT_SAID_ADJ + r"(?P<m>" + _ENDORSING_V4 + r")" + _NOT_BY + _STRICT,
+            subtype="endorsing", modal_blocks=True, blocked_by=_TEXT_BLOCK, **_NEAR),
     # '"…," the minister claimed' / '"…," claimed the minister'
     Pattern("attr-distancing-inv", _CLOSE_Q + r"(?P<m>" + _DISTANCING_INV + r")",
             subtype="distancing", lead_boundary=False),
@@ -328,7 +412,9 @@ ATTRIBUTION = [
     # "…, claimed the union." (no quotation marks): distancing only; endorsing verbs after a
     # comma are too often acts ("…, confirmed the sentence").
     Pattern("attr-distancing-comma",
-            r",\s*(?P<m>" + _DISTANCING_INV + r")\s+(?:the\s+)?[\w'-]+(?:\s+[\w'-]+){0,4}\s*(?:[.;!?]|$)",
+            # attribution-v4: not before a preposition (", claims in this case.").
+            r",\s*(?P<m>" + _DISTANCING_INV + r")(?!\s+(?:in|of|for|under|against|based|arising|that|which|and|or"
+            r"|to|on|at|by|with|from)\b)\s+(?:the\s+)?[\w'-]+(?:\s+[\w'-]+){0,4}\s*(?:[.;!?]|$)",
             subtype="distancing", lead_boundary=False),
 ]
 
